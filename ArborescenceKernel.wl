@@ -1,12 +1,12 @@
 (* ::Package:: *)
 
-(*Getting connection probability based on distance of two nodes (r)*)
+(* Getting connection probability based on distance of two nodes (r) *)
 GetProb[r_]:=(
 	N[Exp[-Power[r,2]/2]]
 );
 
 
-(*Building maximum tree of spanning arborescence*)
+(* Building maximum tree of spanning arborescence *)
 StaticHierarchy[connProbabilityMx_]:=(
 	sizeConProbMx = Length[connProbabilityMx[[1]]];
 	connPowerMx = connProbabilityMx * Transpose[connProbabilityMx];
@@ -22,5 +22,11 @@ StaticHierarchy[connProbabilityMx_]:=(
 	spanningTreeMx = WeightedAdjacencyMatrix[
     FindSpanningTree[fullSystemGraph, VertexLabels -> "Name",
       EdgeLabels -> "EdgeWeight"]];
-	result = MatrixForm[spanningTreeMx]
+	result = spanningTreeMx
+);
+
+
+(* Test func *)
+GetArg[x_]:=(
+	x
 );

@@ -17,7 +17,7 @@ class MatplotlibWidget(QMainWindow):
         QMainWindow.__init__(self)
         loadUi("qt_designer.ui", self)
         self.setWindowTitle("PyQt5 & Matplotlib Example GUI")
-        self.pushButton_generate_random_signal.clicked.connect(
+        self.pbtn_generatestruct.clicked.connect(
             self.update_graph)
         self.addToolBar(NavigationToolbar(self.MplWidget.canvas, self))
 

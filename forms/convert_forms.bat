@@ -1,0 +1,1 @@
+pyuic5 multiagent_structure_main_win.ui -o multiagent_structure_main_win.py

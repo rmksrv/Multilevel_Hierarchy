@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>752</width>
-    <height>463</height>
+    <width>1103</width>
+    <height>760</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <x>10</x>
      <y>10</y>
      <width>261</width>
-     <height>441</height>
+     <height>741</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -89,12 +89,18 @@
     <item row="3" column="0">
      <widget class="QLabel" name="label__System_nodeAmount">
       <property name="text">
-       <string>Количество услов</string>
+       <string>Количество узлов</string>
       </property>
      </widget>
     </item>
     <item row="5" column="0" colspan="2">
      <widget class="QTableWidget" name="tableWidget__nodesCoords">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
       <property name="columnCount">
        <number>2</number>
       </property>
@@ -144,13 +150,20 @@
     <rect>
      <x>280</x>
      <y>10</y>
-     <width>461</width>
-     <height>441</height>
+     <width>811</width>
+     <height>741</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="2" column="0">
-     <widget class="QTableWidget" name="tableWidget__connectionsPower"/>
+     <widget class="QTableWidget" name="tableWidget__connectionsPower">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>1</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
     </item>
     <item row="1" column="0">
      <widget class="QLabel" name="label__connectionsPower">

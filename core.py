@@ -132,9 +132,12 @@ class StructureBuilder:
         
         # Make structure
         G = nx.from_numpy_array(cpower, create_using=nx.DiGraph)
-        res = nx.maximum_spanning_arborescence(G, default=0)
-        if as_matrix:
-            res = nx.to_numpy_array(res)
+        try:
+            res = nx.maximum_spanning_arborescence(G, default=0)
+            if as_matrix:
+                res = nx.to_numpy_array(res)
+        except nx.exception.NetworkXException:  # if no tree found
+            raise  # handle this in interface part
         return res
 
 

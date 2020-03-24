@@ -83,6 +83,14 @@ class StructureBuilder:
                         div *= 2
         
         # max_slaves feature
+        # bug:
+        #   With standart nodesCoord matrix:
+        #       I. 
+        #           1. Set max_slaves = 2, max_depth = 2
+        #           2. Program prints: `No optimal tree found`
+        #       II.
+        #           1. Set max_slaves = 3 or 4, max_depth = 2
+        #           2. Program build a tree with with no more, than 2 slaves
         if max_slaves > 0:
             cpower_changed = True
             while cpower_changed:

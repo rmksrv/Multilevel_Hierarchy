@@ -1,11 +1,14 @@
 import sys
 # Core
 from core import StructureBuilder, Utils
-from networkx.exception import NetworkXException
+import networkx as nx
+import numpy as np
 # Qt imports
 from PyQt5 import QtCore, QtGui, QtWidgets
 import forms.multiagent_structure_main_win as forms_mainwin
-
+# MplWidget imports
+#from PyQt5.uic import loadUi
+#from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
 
 # TODO tasks:
 #   Big:
@@ -88,11 +91,13 @@ class MainWin(QtWidgets.QMainWindow):
                 )
         self.ui.tableWidget__connectionsPower.resizeColumnsToContents()
         try:
-            adjmx = struct_builder.build_tree(cprob, as_matrix=True, 
+            ## Generating adjacency matrix
+            tree = struct_builder.build_tree(cprob, 
                 recalculate_probs=self.recalculateProbs,
                 max_slaves=self.maxSlaves,
                 max_depth=self.treeDepth
             )
+            adjmx = nx.to_numpy_array(tree)
             # Print connections power matrix to table
             self.ui.tableWidget__adjacencyMatrix.setRowCount(self.nodesAmount)
             self.ui.tableWidget__adjacencyMatrix.setColumnCount(self.nodesAmount)
@@ -105,7 +110,10 @@ class MainWin(QtWidgets.QMainWindow):
                         ))
                     )
             self.ui.tableWidget__adjacencyMatrix.resizeColumnsToContents()
-        except NetworkXException:
+            ## Drawing graph
+            #self.ui.MplWidget.canvas.axes.clear()
+            #nx.draw_networkx(tree, pos=nx.planar_layout(tree))
+        except nx.exception.NetworkXException:
             warning_msg = QtWidgets.QMessageBox()
             warning_msg.setWindowTitle('Ошибка')
             warning_msg.setText('Оптимальное дерево не найдено')

@@ -182,11 +182,11 @@ class Utils:
         return math.exp(-r**2 / 500)
 
     @staticmethod
-    def prob_func_dots(calc_amount=200, dist = 1):
-        x = np.linspace(0, dist, calc_amount)
+    def prob_func_dots(calc_amount=200, rmin=7, rmax=50):
+        x = np.linspace(0, int(1.1 * rmax), calc_amount)
         fx = np.empty(calc_amount)
         for i in range(calc_amount):
-            fx[i] = Utils.get_prob(i)
+            fx[i] = Utils.get_prob(i, rmin, rmax)
         return x, fx
 
     @staticmethod

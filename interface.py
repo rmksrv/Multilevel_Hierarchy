@@ -24,6 +24,32 @@ class ProbFuncWin(QtWidgets.QMainWindow):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = forms_probfunc.Ui_Dialog()
         self.ui.setupUi(self)
+        # my vars
+        self.rolow = 7
+        self.roupp = 50
+        # fields sync
+        self.ui.lineEdit.setText(str(self.rolow))
+        self.ui.lineEdit_2.setText(str(self.roupp))
+        # Connects
+        self.ui.lineEdit.editingFinished.connect(self.set_rolow)
+        self.ui.lineEdit_2.editingFinished.connect(self.set_roupp)
+
+    def set_rolow(self):
+        calc_amount = 200
+        self.rolow = float(self.ui.lineEdit.text())
+        self.ui.mplwidget.canvas.axes.clear()
+        self.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[0], Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[1])
+        self.ui.mplwidget.canvas.draw()
+
+
+    def set_roupp(self):
+        calc_amount = 200
+        self.roupp = float(self.ui.lineEdit_2.text())
+        self.ui.mplwidget.canvas.axes.clear()
+        self.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[0], Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[1])
+        self.ui.mplwidget.canvas.draw()
+
+
 
 
 class MainWin(QtWidgets.QMainWindow):
@@ -154,7 +180,9 @@ class MainWin(QtWidgets.QMainWindow):
         self.probfunc_dialog.show()
         calc_amount = 200
         self.probfunc_dialog.ui.mplwidget.canvas.axes.clear()
-        self.probfunc_dialog.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, dist=60)[0], Utils.prob_func_dots(calc_amount, dist=60)[1])
+        rolow = self.probfunc_dialog.rolow
+        roupp = self.probfunc_dialog.roupp
+        self.probfunc_dialog.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, rolow, roupp)[0], Utils.prob_func_dots(calc_amount, rolow, roupp)[1])
         self.probfunc_dialog.ui.mplwidget.canvas.draw()
 
 

@@ -6,16 +6,24 @@ import numpy as np
 # Qt imports
 from PyQt5 import QtCore, QtGui, QtWidgets
 import forms.multiagent_structure_main_win as forms_mainwin
+import forms.prob_function_win as forms_probfunc
 # MplWidget imports
 #from PyQt5.uic import loadUi
 #from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
 
 # TODO tasks:
 #   Big:
-#   - add drawing of graph using matplotlib/networkx
-#   - add posibility to view info about get_prob(r) func and change it (see `numexpr`/`sympy` modules)
+#   - add drawing of graph using matplotlib/networkx (in progress)
+#   - add posibility to view info about get_prob(r) func and change it (see `numexpr`/`sympy` modules) (in progress)
 #   Small:
 #   - add check of value correctness in set_nodesAmount, set_maxSlaves, set_treeDepth 
+
+
+class ProbFuncWin(QtWidgets.QMainWindow):
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self, parent)
+        self.ui = forms_probfunc.Ui_Dialog()
+        self.ui.setupUi(self)
 
 
 class MainWin(QtWidgets.QMainWindow):
@@ -24,6 +32,8 @@ class MainWin(QtWidgets.QMainWindow):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = forms_mainwin.Ui_MainWindow()
         self.ui.setupUi(self)
+        # Other windows
+        self.probfunc_dialog = ProbFuncWin()
         # my vars
         self.nodesCoords = [
             (0.0, 0.0),
@@ -59,6 +69,7 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.lineEdit__maxSlaves.editingFinished.connect(self.set_maxSlaves)
         self.ui.lineEdit__treeDepth.editingFinished.connect(self.set_treeDepth)
         self.ui.checkBox__recalculate_probs.clicked.connect(self.set_recalculateProbs)
+        self.ui.action__prob_func.triggered.connect(self.open_prob_func_win)
 
     def build_structure(self):
         struct_builder = StructureBuilder()
@@ -113,6 +124,10 @@ class MainWin(QtWidgets.QMainWindow):
             ## Drawing graph
             #self.ui.MplWidget.canvas.axes.clear()
             #nx.draw_networkx(tree, pos=nx.planar_layout(tree))
+            import matplotlib.pyplot as plt
+            plt.subplot(111)
+            nx.draw_networkx(tree, pos=nx.planar_layout(tree))
+            plt.show()
         except nx.exception.NetworkXException:
             warning_msg = QtWidgets.QMessageBox()
             warning_msg.setWindowTitle('Ошибка')
@@ -134,6 +149,14 @@ class MainWin(QtWidgets.QMainWindow):
 
     def set_recalculateProbs(self):
         self.recalculateProbs = not self.recalculateProbs
+
+    def open_prob_func_win(self):
+        self.probfunc_dialog.show()
+        calc_amount = 200
+        self.probfunc_dialog.ui.mplwidget.canvas.axes.clear()
+        self.probfunc_dialog.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, dist=60)[0], Utils.prob_func_dots(calc_amount, dist=60)[1])
+        self.probfunc_dialog.ui.mplwidget.canvas.draw()
+
 
 
 

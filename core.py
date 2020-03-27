@@ -148,14 +148,50 @@ class StructureBuilder:
             raise  # handle this in interface part
         return res
 
-
 class Utils:
     @staticmethod
-    def get_prob(r):
+    def get_prob(r, rmin=7, rmax=50):
+        '''
+        rmax - max distance (more than that -> prob = 0)
+        rmin - min distance to keep prob == 1
+        '''
+        # Base:
+        #return Utils.get_prob_base(r)
+        ####################################
+        # Linear smooth:
+        #if r <= rmin:
+        #    return 1
+        #elif r >= rmax:
+        #    return 0
+        #else:
+        #    return (rmax - r) / (rmax - rmin)
+        ####################################
+        # try to smooth 0 and 1 with exp
+        if r <= rmin:
+            return 1
+        elif r >= rmax:
+            return 0
+        else:
+            return Utils.get_prob_base(r=r-rmin)
+
+    @staticmethod
+    def get_prob_base(r):
         '''
         Get connection_probability by distance r of two nodes
         '''
         return math.exp(-r**2 / 500)
+
+    @staticmethod
+    def prob_func_dots(calc_amount=200, dist = 1):
+        x = np.linspace(0, dist, calc_amount)
+        fx = np.empty(calc_amount)
+        for i in range(calc_amount):
+            fx[i] = Utils.get_prob(i)
+        return x, fx
+
+    @staticmethod
+    def prob_func():
+        return 'math.exp(-r**2 / 500)' 
 
     @staticmethod
     def dist2(p1, p2):

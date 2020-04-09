@@ -91,6 +91,7 @@ class StructureBuilder:
         #       II.
         #           1. Set max_slaves = 3 or 4, max_depth = 2
         #           2. Program build a tree with with no more, than 2 slaves
+        # UPD: can not reproduce
         if max_slaves > 0:
             cpower_changed = True
             while cpower_changed:
@@ -149,49 +150,38 @@ class StructureBuilder:
         return res
 
 class Utils:
+    # TODO: P1 - smooth 1 and 0 with exp
     @staticmethod
     def get_prob(r, rmin=7, rmax=50):
         '''
         rmax - max distance (more than that -> prob = 0)
         rmin - min distance to keep prob == 1
         '''
-        # Base:
-        #return Utils.get_prob_base(r)
-        ####################################
-        # Linear smooth:
-        #if r <= rmin:
-        #    return 1
-        #elif r >= rmax:
-        #    return 0
-        #else:
-        #    return (rmax - r) / (rmax - rmin)
-        ####################################
         # try to smooth 0 and 1 with exp
-        if r <= rmin:
+        if r < rmin:
             return 1
-        elif r >= rmax:
+        elif r > rmax:
             return 0
         else:
-            return Utils.get_prob_base(r=r-rmin)
+            #return Utils.base_func((r+0.5*(rmin+rmax))-rmin, rmin, rmax)
+            #return Utils.base_func(r+0.5*(rmin+rmax), rmin, rmax)
+            return Utils.base_func(0.5*(r+(rmin+rmax)-rmin), rmin, rmax)
 
-    @staticmethod
-    def get_prob_base(r):
-        '''
-        Get connection_probability by distance r of two nodes
-        '''
-        return math.exp(-r**2 / 500)
+    def base_func(r, rmin=7, rmax=50):
+        return math.exp(4/(rmax-rmin)) * math.exp((rmax - rmin) / ((r - rmin) * (r - rmax)))
+        #return 1/math.exp( (rmax-rmin) / ((0.5*r - 0.75*rmin + 0.25*rmax)*(0.5*r - 0.75*rmax + 0.25*rmin)) ) * math.exp((rmax - rmin) / ((r - rmin) * (r - rmax)))
 
     @staticmethod
     def prob_func_dots(calc_amount=200, rmin=7, rmax=50):
-        x = np.linspace(0, int(1.1 * rmax), calc_amount)
+        x = np.linspace(0, 1.2*rmax, calc_amount)
         fx = np.empty(calc_amount)
-        for i in range(calc_amount):
-            fx[i] = Utils.get_prob(i, rmin, rmax)
+        for i, dot in enumerate(x):
+            fx[i] = Utils.get_prob(dot, rmin, rmax)
+            #fx.append(Utils.get_prob(dot, rmin, rmax))
+        #for i in range(calc_amount):
+        #    fx[i] = Utils.get_prob(i, rmin, rmax)
+        #    print('{}: {}'.format(i, fx[i]))
         return x, fx
-
-    @staticmethod
-    def prob_func():
-        return 'math.exp(-r**2 / 500)' 
 
     @staticmethod
     def dist2(p1, p2):

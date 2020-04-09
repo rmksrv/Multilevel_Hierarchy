@@ -9,7 +9,7 @@ import forms.multiagent_structure_main_win as forms_mainwin
 import forms.prob_function_win as forms_probfunc
 # MplWidget imports
 #from PyQt5.uic import loadUi
-#from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
+from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
 
 # TODO tasks:
 #   Big:
@@ -24,10 +24,13 @@ class ProbFuncWin(QtWidgets.QMainWindow):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = forms_probfunc.Ui_Dialog()
         self.ui.setupUi(self)
+        self.addToolBar(NavigationToolbar(self.ui.mplwidget.canvas, self))
         # my vars
+        self.ca = 500
         self.rolow = 7
         self.roupp = 50
         # fields sync
+
         self.ui.lineEdit.setText(str(self.rolow))
         self.ui.lineEdit_2.setText(str(self.roupp))
         # Connects
@@ -35,17 +38,19 @@ class ProbFuncWin(QtWidgets.QMainWindow):
         self.ui.lineEdit_2.editingFinished.connect(self.set_roupp)
 
     def set_rolow(self):
-        calc_amount = 200
+        calc_amount = self.ca
         self.rolow = float(self.ui.lineEdit.text())
         self.ui.mplwidget.canvas.axes.clear()
+        self.ui.mplwidget.canvas.axes.set_ylim([-0.05, 1.1])
         self.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[0], Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[1])
         self.ui.mplwidget.canvas.draw()
 
 
     def set_roupp(self):
-        calc_amount = 200
+        calc_amount = self.ca
         self.roupp = float(self.ui.lineEdit_2.text())
         self.ui.mplwidget.canvas.axes.clear()
+        self.ui.mplwidget.canvas.axes.set_ylim([-0.05, 1.1])
         self.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[0], Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[1])
         self.ui.mplwidget.canvas.draw()
 
@@ -182,11 +187,13 @@ class MainWin(QtWidgets.QMainWindow):
         self.probfunc_dialog.ui.mplwidget.canvas.axes.clear()
         rolow = self.probfunc_dialog.rolow
         roupp = self.probfunc_dialog.roupp
-        self.probfunc_dialog.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, rolow, roupp)[0], Utils.prob_func_dots(calc_amount, rolow, roupp)[1])
+        dots = Utils.prob_func_dots(calc_amount, rolow, roupp)
+        print('\n\n')
+        print(dots)
+        print('\n\n')
+        self.probfunc_dialog.ui.mplwidget.canvas.axes.set_ylim([-0.05, 1.1])
+        self.probfunc_dialog.ui.mplwidget.canvas.axes.plot(dots[0], dots[1])
         self.probfunc_dialog.ui.mplwidget.canvas.draw()
-
-
-
 
 
 if __name__=='__main__':

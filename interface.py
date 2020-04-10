@@ -91,6 +91,7 @@ class MainWin(QtWidgets.QMainWindow):
             i += 1
         # Something
         self.ui.widget.canvas.axes.clear()
+        self.build_structure()
         # Connects
         self.ui.pushButton__buildStructure.clicked.connect(self.build_structure)
         self.ui.lineEdit__nodeAmount.editingFinished.connect(self.set_nodesAmount)
@@ -160,10 +161,6 @@ class MainWin(QtWidgets.QMainWindow):
             self.ui.widget.canvas.axes.clear()
             nx.draw_networkx(tree, pos=nx.planar_layout(tree), ax=self.ui.widget.canvas.axes)
             self.ui.widget.canvas.draw()
-            #import matplotlib.pyplot as plt
-            #plt.subplot(111)
-            #nx.draw_networkx(tree, pos=nx.planar_layout(tree))
-            #plt.show()
         except nx.exception.NetworkXException:
             warning_msg = QtWidgets.QMessageBox()
             warning_msg.setWindowTitle('Ошибка')

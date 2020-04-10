@@ -78,6 +78,9 @@ class Ui_MainWindow(object):
         self.tab__drawGraph.setObjectName("tab__drawGraph")
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout(self.tab__drawGraph)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
+        self.widget = MplWidget(self.tab__drawGraph)
+        self.widget.setObjectName("widget")
+        self.horizontalLayout_6.addWidget(self.widget)
         self.tab_container.addTab(self.tab__drawGraph, "")
         self.tab__adjMx = QtWidgets.QWidget()
         self.tab__adjMx.setObjectName("tab__adjMx")
@@ -200,3 +203,4 @@ class Ui_MainWindow(object):
         self.pushButton__buildStructure.setText(_translate("MainWindow", "Построить структуру"))
         self.menu.setTitle(_translate("MainWindow", "Меню"))
         self.action__prob_func.setText(_translate("MainWindow", "Функция вероятности"))
+from mplwidget import MplWidget

@@ -29,7 +29,6 @@ class ProbFuncWin(QtWidgets.QMainWindow):
         self.rolow = 7
         self.roupp = 50
         # fields sync
-
         self.ui.lineEdit.setText(str(self.rolow))
         self.ui.lineEdit_2.setText(str(self.roupp))
         # Connects
@@ -90,6 +89,8 @@ class MainWin(QtWidgets.QMainWindow):
             self.ui.tableWidget__nodesCoords.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))  # add x value to `i` row
             self.ui.tableWidget__nodesCoords.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))  # and y value too
             i += 1
+        # Something
+        self.ui.widget.canvas.axes.clear()
         # Connects
         self.ui.pushButton__buildStructure.clicked.connect(self.build_structure)
         self.ui.lineEdit__nodeAmount.editingFinished.connect(self.set_nodesAmount)
@@ -108,7 +109,6 @@ class MainWin(QtWidgets.QMainWindow):
             x = float(self.ui.tableWidget__nodesCoords.item(i, 0).text())
             y = float(self.ui.tableWidget__nodesCoords.item(i, 1).text())
             node = (x, y)
-            print(node)
             self.nodesCoords.append(node)
         # Connection probability matrix
         cprob = struct_builder.connection_probability(self.nodesCoords)
@@ -157,12 +157,13 @@ class MainWin(QtWidgets.QMainWindow):
                     )
             self.ui.tableWidget__adjacencyMatrix.resizeColumnsToContents()
             ## Drawing graph
-            #self.ui.MplWidget.canvas.axes.clear()
+            self.ui.widget.canvas.axes.clear()
+            nx.draw_networkx(tree, pos=nx.planar_layout(tree), ax=self.ui.widget.canvas.axes)
+            self.ui.widget.canvas.draw()
+            #import matplotlib.pyplot as plt
+            #plt.subplot(111)
             #nx.draw_networkx(tree, pos=nx.planar_layout(tree))
-            import matplotlib.pyplot as plt
-            plt.subplot(111)
-            nx.draw_networkx(tree, pos=nx.planar_layout(tree))
-            plt.show()
+            #plt.show()
         except nx.exception.NetworkXException:
             warning_msg = QtWidgets.QMessageBox()
             warning_msg.setWindowTitle('Ошибка')
@@ -200,9 +201,6 @@ class MainWin(QtWidgets.QMainWindow):
         rolow = self.probfunc_dialog.rolow
         roupp = self.probfunc_dialog.roupp
         dots = Utils.prob_func_dots(calc_amount, rolow, roupp)
-        print('\n\n')
-        print(dots)
-        print('\n\n')
         self.probfunc_dialog.ui.mplwidget.canvas.axes.set_ylim([-0.05, 1.1])
         self.probfunc_dialog.ui.mplwidget.canvas.axes.plot(dots[0], dots[1])
         self.probfunc_dialog.ui.mplwidget.canvas.draw()

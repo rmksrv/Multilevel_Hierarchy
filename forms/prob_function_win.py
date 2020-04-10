@@ -13,9 +13,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(624, 468)
+        Dialog.resize(624, 571)
         self.mplwidget = MplWidget(Dialog)
-        self.mplwidget.setGeometry(QtCore.QRect(9, 37, 606, 422))
+        self.mplwidget.setGeometry(QtCore.QRect(10, 71, 606, 491))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -23,7 +23,7 @@ class Ui_Dialog(object):
         self.mplwidget.setSizePolicy(sizePolicy)
         self.mplwidget.setObjectName("mplwidget")
         self.layoutWidget = QtWidgets.QWidget(Dialog)
-        self.layoutWidget.setGeometry(QtCore.QRect(350, 10, 261, 22))
+        self.layoutWidget.setGeometry(QtCore.QRect(10, 40, 261, 22))
         self.layoutWidget.setObjectName("layoutWidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.layoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)

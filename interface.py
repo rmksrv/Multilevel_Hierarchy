@@ -14,7 +14,6 @@ from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as Navigati
 # TODO tasks:
 #   Big:
 #   - add drawing of graph using matplotlib/networkx (in progress)
-#   - add posibility to view info about get_prob(r) func and change it (see `numexpr`/`sympy` modules) (in progress)
 #   Small:
 #   - add check of value correctness in set_nodesAmount, set_maxSlaves, set_treeDepth 
 
@@ -45,7 +44,6 @@ class ProbFuncWin(QtWidgets.QMainWindow):
         self.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[0], Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[1])
         self.ui.mplwidget.canvas.draw()
 
-
     def set_roupp(self):
         calc_amount = self.ca
         self.roupp = float(self.ui.lineEdit_2.text())
@@ -53,8 +51,6 @@ class ProbFuncWin(QtWidgets.QMainWindow):
         self.ui.mplwidget.canvas.axes.set_ylim([-0.05, 1.1])
         self.ui.mplwidget.canvas.axes.plot(Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[0], Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)[1])
         self.ui.mplwidget.canvas.draw()
-
-
 
 
 class MainWin(QtWidgets.QMainWindow):
@@ -106,6 +102,14 @@ class MainWin(QtWidgets.QMainWindow):
         struct_builder = StructureBuilder()
         # TODO: add field to change number of digits after `,`
         digits_number = 5
+        # Remake self.nodesCoords
+        self.nodesCoords.clear()
+        for i in range(self.nodesAmount):
+            x = float(self.ui.tableWidget__nodesCoords.item(i, 0).text())
+            y = float(self.ui.tableWidget__nodesCoords.item(i, 1).text())
+            node = (x, y)
+            print(node)
+            self.nodesCoords.append(node)
         # Connection probability matrix
         cprob = struct_builder.connection_probability(self.nodesCoords)
         self.ui.tableWidget__connectionsProb.setRowCount(self.nodesAmount)
@@ -169,6 +173,14 @@ class MainWin(QtWidgets.QMainWindow):
         # TODO: add check of value correctness 
         self.nodesAmount = int(self.ui.lineEdit__nodeAmount.text())
         self.ui.tableWidget__nodesCoords.setRowCount(self.nodesAmount)
+        self.ui.tableWidget__connectionsProb.clear()
+        self.ui.tableWidget__connectionsPower.clear()
+        self.ui.tableWidget__connectionsProb.setRowCount(self.nodesAmount)
+        self.ui.tableWidget__connectionsProb.setColumnCount(self.nodesAmount)
+        self.ui.tableWidget__connectionsPower.setRowCount(self.nodesAmount)
+        self.ui.tableWidget__connectionsPower.setColumnCount(self.nodesAmount)
+
+
 
     def set_maxSlaves(self):
         # TODO: add check of value correctness 

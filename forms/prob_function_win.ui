@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>624</width>
-    <height>468</height>
+    <height>571</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,10 +16,10 @@
   <widget class="MplWidget" name="mplwidget" native="true">
    <property name="geometry">
     <rect>
-     <x>9</x>
-     <y>37</y>
+     <x>10</x>
+     <y>71</y>
      <width>606</width>
-     <height>422</height>
+     <height>491</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -32,8 +32,8 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>350</x>
-     <y>10</y>
+     <x>10</x>
+     <y>40</y>
      <width>261</width>
      <height>22</height>
     </rect>

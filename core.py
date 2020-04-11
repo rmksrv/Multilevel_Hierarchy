@@ -3,8 +3,44 @@ import math
 import numpy as np
 import networkx as nx
 
+
+class MultiagentEnvironment:
+    '''
+    Class, who defines contorlable multiagent env in two-dim space, where every agent(node) movement describes as:
+        x[k+1] == A[j]*x[k] + B[j]u[k]
+        y[k+1] == A[j]*y[k] + B[j]u[k]
+    '''
+    def __init__(self, agents_amount: int, time_period: int):
+        '''
+        self.agents_amount -- Amount of agents
+        self.time_period   -- Time period [0, t)
+        self.nodes         -- Coordinates of nodes on start (t=0)
+        '''
+        self.agents_amount = agents_amount
+        self.time_period = time_period
+        self.nodes = []
+        self.control = []
+        self.A = np.empty((self.agents_amount, 1))
+        self.B = np.empty((self.agents_amount, 1))
+        self.builder = StructureBuilder()
+
+    def get_next_node_coord(self, node_num):
+        x = self.A[node_num]*self.nodes[node_num][0] + self.B[node_num]*self.control[node_num]
+        y = self.A[node_num]*self.nodes[node_num][0] + self.B[node_num]*self.control[node_num]
+        return x, y
+
+    def set_agents_amount(self, aa: int):
+        self.agents_amount = aa
+
+    def set_time_period(self, tp: int):
+        self.time_period = tp
+
+
 class StructureBuilder:
-    def connection_probability(self, coords):
+    '''
+    Class, who builds optimal structure for single moment
+    '''
+    def connection_probability(self, coords, rolow: float, roupp: float):
         '''
         Calculate `connection probability` mx from `coords` mx
         Coords example:
@@ -23,7 +59,7 @@ class StructureBuilder:
                 if j == 0 or i == j:
                     cprob[i][j] = 0.0
                 else:
-                    cprob[i][j] = Utils.get_prob(Utils.dist2(coords[i], coords[j]))
+                    cprob[i][j] = Utils.get_prob(Utils.dist2(coords[i], coords[j]), rolow, roupp)
         return cprob
 
     def connection_power(self, cprob: np.ndarray):
@@ -124,7 +160,6 @@ class StructureBuilder:
             cpower_changed = True
             while cpower_changed:
                 # Build base tree from existing cpower mx
-                #base_tree_matrix = self.build_tree(cpower, mode='connection_power', as_matrix=True, recalculate_probs=recalculate_probs, max_slaves=max_slaves)
                 base_tree = self.build_tree(cpower, mode='connection_power', as_matrix=False, recalculate_probs=recalculate_probs, max_slaves=max_slaves)
                 cpower_changed = False
                 # If we have too far node, then we fix cpower -> cprob (cpower [-2][-1] := 0)
@@ -150,7 +185,6 @@ class StructureBuilder:
         return res
 
 class Utils:
-    # TODO: P1 - smooth 1 and 0 with exp
     @staticmethod
     def get_prob(r, rmin=7, rmax=50):
         '''
@@ -158,29 +192,25 @@ class Utils:
         rmin - min distance to keep prob == 1
         '''
         # try to smooth 0 and 1 with exp
-        if r < rmin:
+        if r <= rmin:
             return 1
-        elif r > rmax:
+        elif r >= rmax:
             return 0
         else:
-            #return Utils.base_func((r+0.5*(rmin+rmax))-rmin, rmin, rmax)
-            #return Utils.base_func(r+0.5*(rmin+rmax), rmin, rmax)
             return Utils.base_func(0.5*(r+(rmin+rmax)-rmin), rmin, rmax)
 
     def base_func(r, rmin=7, rmax=50):
         return math.exp(4/(rmax-rmin)) * math.exp((rmax - rmin) / ((r - rmin) * (r - rmax)))
-        #return 1/math.exp( (rmax-rmin) / ((0.5*r - 0.75*rmin + 0.25*rmax)*(0.5*r - 0.75*rmax + 0.25*rmin)) ) * math.exp((rmax - rmin) / ((r - rmin) * (r - rmax)))
 
     @staticmethod
     def prob_func_dots(calc_amount=200, rmin=7, rmax=50):
+        '''
+        View of get_prob func for plotting via matplotlib
+        '''
         x = np.linspace(0, 1.2*rmax, calc_amount)
         fx = np.empty(calc_amount)
         for i, dot in enumerate(x):
             fx[i] = Utils.get_prob(dot, rmin, rmax)
-            #fx.append(Utils.get_prob(dot, rmin, rmax))
-        #for i in range(calc_amount):
-        #    fx[i] = Utils.get_prob(i, rmin, rmax)
-        #    print('{}: {}'.format(i, fx[i]))
         return x, fx
 
     @staticmethod
@@ -200,69 +230,56 @@ class Utils:
 
 if __name__ == '__main__':
     np.set_printoptions(suppress=True, linewidth=np.inf)  # disable mantissa view for numbers
-    sb = StructureBuilder()
+    test_env = MultiagentEnvironment(agents_amount=9, time_period=5)
+    #sb = StructureBuilder()
     #test_coords = (
     #    (0.0, 0.0),
-    #    (5.0, 0.0),
+    #    (4.0, 0.0),
     #    (10.0, 0.0),
-    #    (15.0, 0.0),
+    #    (13.0, 0.0),
     #    (20.0, 0.0),
-    #    (0.0, 5.0),
-    #    (0.0, 10.0),
-    #    (0.0, -5.0),
+    #    (0.0, 3.0),
+    #    (0.0, 6.0),
+    #    (0.0, -3.0),
     #    (-5.0, 0.0),
-    #)
-    test_coords = (
-        (0.0, 0.0),
-        (4.0, 0.0),
-        (10.0, 0.0),
-        (13.0, 0.0),
-        (20.0, 0.0),
-        (0.0, 3.0),
-        (0.0, 6.0),
-        (0.0, -3.0),
-        (-5.0, 0.0),
-    )
-
-    
-    print('\ntest_coords:')
-    for i in test_coords:
-        print('({}, {})'.format(i[0], i[1]))
-    
-    print('\nconnection_probability:')
-    test_cprob = sb.connection_probability(test_coords)
-    print(test_cprob)
-    
-    print('\nconnection_power:')
-    test_cpower = sb.connection_power(test_cprob)
-    print(test_cpower)
-     
-    print('\nstructure matrix data:')
-    test_adjmx = sb.build_tree(test_cprob)
-    print('  __class__: {}'.format(test_adjmx.__class__))
-    print('  is_tree: {}'.format(nx.is_tree(test_adjmx)))
-    print('  is_arborescence: {}'.format(nx.is_arborescence(test_adjmx)))
-    print('  longest_path: {}'.format(nx.dag_longest_path(test_adjmx)))
-    print('  longest_path_length: {}'.format(Utils.tree_depth(test_adjmx)))
-    
-    print('\nstructure matrix:')
-    test_adjmx = sb.build_tree(test_cprob, as_matrix=True)
-    print(test_adjmx)
-    
-    print('\nstructure matrix (recalculate_probs=True):')
-    test_adjmx = sb.build_tree(test_cprob, as_matrix=True, recalculate_probs=True)
-    print(test_adjmx)
-    
-    print('\nstructure matrix (max_slaves=2):')
-    test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_slaves=2)
-    print(test_adjmx)
-    
-    print('\nstructure matrix (max_depth=3):')
-    test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_depth=3)
-    print(test_adjmx)
-    
-    print('\nstructure matrix (max_slaves=2, max_depth=3):')
-    test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_slaves=2, max_depth=3)
-    print(test_adjmx)
-
+    #) 
+    #print('\ntest_coords:')
+    #for i in test_coords:
+    #    print('({}, {})'.format(i[0], i[1]))
+    #
+    #print('\nconnection_probability:')
+    #test_cprob = sb.connection_probability(test_coords)
+    #print(test_cprob)
+    #
+    #print('\nconnection_power:')
+    #test_cpower = sb.connection_power(test_cprob)
+    #print(test_cpower)
+    # 
+    #print('\nstructure matrix data:')
+    #test_adjmx = sb.build_tree(test_cprob)
+    #print('  __class__: {}'.format(test_adjmx.__class__))
+    #print('  is_tree: {}'.format(nx.is_tree(test_adjmx)))
+    #print('  is_arborescence: {}'.format(nx.is_arborescence(test_adjmx)))
+    #print('  longest_path: {}'.format(nx.dag_longest_path(test_adjmx)))
+    #print('  longest_path_length: {}'.format(Utils.tree_depth(test_adjmx)))
+    #
+    #print('\nstructure matrix:')
+    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True)
+    #print(test_adjmx)
+    #
+    #print('\nstructure matrix (recalculate_probs=True):')
+    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True, recalculate_probs=True)
+    #print(test_adjmx)
+    #
+    #print('\nstructure matrix (max_slaves=2):')
+    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_slaves=2)
+    #print(test_adjmx)
+    #
+    #print('\nstructure matrix (max_depth=3):')
+    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_depth=3)
+    #print(test_adjmx)
+    #
+    #print('\nstructure matrix (max_slaves=2, max_depth=3):')
+    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_slaves=2, max_depth=3)
+    #print(test_adjmx)
 

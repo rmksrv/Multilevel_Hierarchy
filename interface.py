@@ -112,7 +112,9 @@ class MainWin(QtWidgets.QMainWindow):
             node = (x, y)
             self.nodesCoords.append(node)
         # Connection probability matrix
-        cprob = struct_builder.connection_probability(self.nodesCoords)
+        rolow = self.probfunc_dialog.rolow
+        roupp = self.probfunc_dialog.roupp
+        cprob = struct_builder.connection_probability(self.nodesCoords, rolow, roupp)
         self.ui.tableWidget__connectionsProb.setRowCount(self.nodesAmount)
         self.ui.tableWidget__connectionsProb.setColumnCount(self.nodesAmount)
         # C-styled array bypass should be rewritten

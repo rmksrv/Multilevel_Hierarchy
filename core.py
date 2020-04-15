@@ -24,16 +24,17 @@ class MultiagentEnvironment:
         self.B = np.empty((self.agents_amount, 1))
         self.builder = StructureBuilder()
 
+    def nodes_to_next_time(self):
+        res = []
+        for node_num in range(len(self.nodes)):
+            res.append(self.get_next_node_coord(node_num))
+        self.nodes = res
+        return self.nodes
+
     def get_next_node_coord(self, node_num):
-        x = self.A[node_num]*self.nodes[node_num][0] + self.B[node_num]*self.control[node_num]
-        y = self.A[node_num]*self.nodes[node_num][0] + self.B[node_num]*self.control[node_num]
+        x = self.A[node_num]*self.nodes[node_num][0] + self.B[node_num]*self.control[node_num][0]
+        y = self.A[node_num]*self.nodes[node_num][1] + self.B[node_num]*self.control[node_num][1]
         return x, y
-
-    def set_agents_amount(self, aa: int):
-        self.agents_amount = aa
-
-    def set_time_period(self, tp: int):
-        self.time_period = tp
 
 
 class StructureBuilder:
@@ -229,8 +230,78 @@ class Utils:
 
 
 if __name__ == '__main__':
+    # Setting env
     np.set_printoptions(suppress=True, linewidth=np.inf)  # disable mantissa view for numbers
     test_env = MultiagentEnvironment(agents_amount=9, time_period=5)
+    test_env.nodes = [
+        (0.0, 0.0),
+        (4.0, 0.0),
+        (10.0, 0.0),
+        (13.0, 0.0),
+        (20.0, 0.0),
+        (0.0, 3.0),
+        (0.0, 6.0),
+        (0.0, -3.0),
+        (-5.0, 0.0),
+    ]
+    test_env.control = [
+        (0.0, 0.0),
+        (0.0, 0.0),
+        (0.0, 0.0),
+        (0.0, 0.0),
+        (0.0, 0.0),
+        (0.0, 0.0),
+        (0.0, 0.0),
+        (0.0, 0.0),
+        (0.0, 0.0),
+    ]
+    test_env.A = np.array([1, 1.3, 1.9, -1.1, 1, 1, 1, 1, 1.9], float)
+    test_env.B = np.array([1, 2, 1, 2, 1, 2, 1, 2, 1], float)
+    rolow = 3
+    roupp = 1000
+
+    print('test_env info:')
+    print('\tagents_amount = {}'.format(test_env.agents_amount))
+    print('\ttime_period = {}'.format(test_env.time_period))
+
+    print('\tnodes = ')
+    print('\t\tx\ty')
+    print('\t\t------------------')
+    for node in test_env.nodes:
+        print('\t\t{}\t{}'.format(node[0], node[1]))
+    
+    print('\tcontrol = ')
+    print('\t\tx\ty')
+    print('\t\t------------------')
+    for node in test_env.control:
+        print('\t\t{}\t{}'.format(node[0], node[1]))
+
+    print('\tA = {}'.format(test_env.A))
+    print('\tB = {}'.format(test_env.B))
+    # For each time build struct
+    for t in range(test_env.time_period):
+        print('--------------------------------------------------------')
+        print('t = {}'.format(t))
+        print('nodes = ')
+        print('\tx\ty')
+        print('\t------------------')
+        for i in test_env.nodes:
+            print('\t{}\t{}'.format(i[0], i[1]))
+        print()
+        cprob = test_env.builder.connection_probability(test_env.nodes, rolow, roupp)
+        tree = test_env.builder.build_tree(cprob, as_matrix=True)
+        print('tree = \n{}'.format(tree))
+        test_env.nodes_to_next_time()
+
+
+
+    #for i in test_env.nodes:
+    #    print('({}, {})'.format(i[0], i[1]))
+    #print('\n')
+    #test_env.nodes_to_next_time()
+    #for i in test_env.nodes:
+    #    print('({}, {})'.format(i[0], i[1]))
+    #print('\n')
     #sb = StructureBuilder()
     #test_coords = (
     #    (0.0, 0.0),

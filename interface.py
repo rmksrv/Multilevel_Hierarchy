@@ -107,8 +107,15 @@ class MainWin(QtWidgets.QMainWindow):
         # Remake self.nodesCoords
         self.nodesCoords.clear()
         for i in range(self.nodesAmount):
-            x = float(self.ui.tableWidget__nodesCoords.item(i, 0).text())
-            y = float(self.ui.tableWidget__nodesCoords.item(i, 1).text())
+            try:
+                x = float(self.ui.tableWidget__nodesCoords.item(i, 0).text())
+                y = float(self.ui.tableWidget__nodesCoords.item(i, 1).text())
+            except AttributeError:
+                warning_msg = QtWidgets.QMessageBox()
+                warning_msg.setWindowTitle('Ошибка')
+                warning_msg.setText('Введите корректные координаты')
+                warning_msg.exec_()
+                return
             node = (x, y)
             self.nodesCoords.append(node)
         # Connection probability matrix
@@ -147,18 +154,13 @@ class MainWin(QtWidgets.QMainWindow):
                 max_depth=self.treeDepth
             )
             adjmx = nx.to_numpy_array(tree)
-            # Print connections power matrix to table
-            self.ui.tableWidget__adjacencyMatrix.setRowCount(self.nodesAmount)
-            self.ui.tableWidget__adjacencyMatrix.setColumnCount(self.nodesAmount)
             #i, j = 0, 0
             for i in range(self.nodesAmount):
                 for j in range(self.nodesAmount):
-                    self.ui.tableWidget__adjacencyMatrix.setItem(i, j, 
-                        QtWidgets.QTableWidgetItem(str(
-                            round(adjmx[i][j], digits_number)
-                        ))
-                    )
-            self.ui.tableWidget__adjacencyMatrix.resizeColumnsToContents()
+                    # if i, j node is used in tree
+                    if adjmx[i][j] != 0:
+                        self.ui.tableWidget__connectionsProb.item(i, j).setBackground(QtGui.QColor(100, 200, 130))
+                        self.ui.tableWidget__connectionsPower.item(i, j).setBackground(QtGui.QColor(100, 200, 130))
             ## Drawing graph
             self.ui.widget.canvas.axes.clear()
             nx.draw_networkx(tree, pos=nx.planar_layout(tree), ax=self.ui.widget.canvas.axes)

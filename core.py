@@ -7,34 +7,92 @@ import networkx as nx
 class MultiagentEnvironment:
     '''
     Class, who defines contorlable multiagent env in two-dim space, where every agent(node) movement describes as:
-        x[k+1] == A[j]*x[k] + B[j]u[k]
-        y[k+1] == A[j]*y[k] + B[j]u[k]
+        x[k+1] == A[j, 0]*x[k] + B[j, 0]u[k]
+        y[k+1] == A[j, 1]*y[k] + B[j, 1]u[k]
     '''
-    def __init__(self, agents_amount: int, time_period: int):
-        '''
-        self.agents_amount -- Amount of agents
-        self.time_period   -- Time period [0, t)
-        self.nodes         -- Coordinates of nodes on start (t=0)
-        '''
-        self.agents_amount = agents_amount
-        self.time_period = time_period
-        self.nodes = []
-        self.control = []
-        self.A = np.empty((self.agents_amount, 1))
-        self.B = np.empty((self.agents_amount, 1))
+    def __init__(self, nodes_amount: int, time: int):
         self.builder = StructureBuilder()
+        self.time = time
+        self.nodes_amount = nodes_amount
+        self.start_node_coords = [(0, 0) for i in range(nodes_amount)]
+        self.node_coords = []
+        self.start_controls = [(0, 0) for i in range(nodes_amount)]
+        self.controls = []
+        self.A = [(1, 1) for i in range(nodes_amount)]
+        self.B = [(1, 1) for i in range(nodes_amount)]
+        self.rolow = 5
+        self.roupp = 300
+        self.cprobs = []
+        self.cpowers = []
+        self.structs = []
 
-    def nodes_to_next_time(self):
-        res = []
-        for node_num in range(len(self.nodes)):
-            res.append(self.get_next_node_coord(node_num))
-        self.nodes = res
-        return self.nodes
+    def print_debug(self):
+        print('env:')
+        print('  time = {}'.format(self.time))
+        print('  nodes_amount = {}'.format(self.nodes_amount))
+        print('  rolow = {}'.format(self.rolow))
+        print('  roupp = {}'.format(self.roupp))
+        print('  start_node_coords =', end='\n    ')
+        print(*self.start_node_coords, sep='\n    ')
+        print('  start_controls =', end='\n    ')
+        print(*self.start_controls, sep='\n    ')
+        print('  A =', end='\n    ')
+        print(*self.A, sep='\n    ')
+        print('  B =', end='\n    ')
+        print(*self.B, sep='\n    ')
+        print('  node_coords  =', end='\n    ')
+        print(*self.node_coords , sep='\n    ')
+        #print('  cpowers =')
+        #i = 0
+        #for cpower in self.cpowers:
+        #    print('{}:'.format(i))
+        #    print(np.array(cpower))
+        #    i += 1
 
-    def get_next_node_coord(self, node_num):
-        x = self.A[node_num]*self.nodes[node_num][0] + self.B[node_num]*self.control[node_num][0]
-        y = self.A[node_num]*self.nodes[node_num][1] + self.B[node_num]*self.control[node_num][1]
-        return x, y
+        #print('  controls = {}'.format(self.controls))
+
+    def set_start_node_coords(self, node_coords):
+        self.start_node_coords = node_coords
+
+    def set_start_controls(self, controls):
+        self.start_controls = controls
+
+    def set_nodes_amount(self, nodes_amount):
+        self.__init__(nodes_amount, self.time)
+
+    def calculate_structs_for_each_time(self, recalculate_probs=False, max_slaves=0, max_depth=0):
+        t = 0
+        curr_node_coords = self.start_node_coords
+        curr_controls = self.start_controls
+        for t in range(self.time):
+            curr_cprob = self.builder.connection_probability(curr_node_coords, self.rolow, self.roupp)
+            curr_cpower = self.builder.connection_power(curr_cprob)
+            curr_struct = self.builder.build_tree(
+                curr_cprob,
+                recalculate_probs=recalculate_probs,
+                max_slaves=max_slaves,
+                max_depth=max_depth,
+            )
+            self.node_coords.append(curr_node_coords)
+            self.controls.append(curr_controls)
+            self.cprobs.append(curr_cprob)
+            self.cpowers.append(curr_cpower)
+            self.structs.append(curr_struct)
+            # calc next nodes and controls
+            curr_node_coords = self.get_next_node_coords(curr_node_coords, curr_controls)
+            curr_controls = self.get_next_controls(curr_node_coords, curr_controls)
+            t +=1
+
+    def get_next_node_coords(self, node_coords, controls):
+        next_node_coords = []
+        for node in range(len(node_coords)):
+            next_x = self.A[node][0]*node_coords[node][0] + self.B[node][0]*controls[node][0]
+            next_y = self.A[node][1]*node_coords[node][1] + self.B[node][1]*controls[node][1]
+            next_node_coords.append((next_x, next_y))
+        return next_node_coords
+
+    def get_next_controls(self, node_coords, controls):
+        return controls
 
 
 class StructureBuilder:
@@ -90,14 +148,14 @@ class StructureBuilder:
             `max_slaves`                 -- max slaves feature. If it > 0 => for each node number of connections will be limited
             `max_depth`                  -- max depth feature. If it > 0 => tree_depth will be limited
         '''
-        
+
         msize = len(cprob[0])
         # Mode checking
         if mode == 'connection_probability':
             cpower = self.connection_power(cprob)
         elif mode == 'connection_power':
             cpower = cprob
-        
+
         # recalculating_probs feature (look on `DynamicHierarhy` function in Wolfram Notebook)
         if recalculate_probs:
             # Build base tree
@@ -105,7 +163,7 @@ class StructureBuilder:
             # Searching nodes to reweight
             nodes_to_reweight = []
             for i in range(msize):  # Row bypass
-                connection_counter = 0  # counter of i node 
+                connection_counter = 0  # counter of i node
                 for j in range(msize):  # Column bypass
                     if base_tree[i][j] > 0:
                         connection_counter += 1
@@ -118,11 +176,11 @@ class StructureBuilder:
                     if base_tree[i][j] > 0:
                         cpower[i][j] = cpower[i][j] / div
                         div *= 2
-        
+
         # max_slaves feature
         # bug:
         #   With standart nodesCoord matrix:
-        #       I. 
+        #       I.
         #           1. Set max_slaves = 2, max_depth = 2
         #           2. Program prints: `No optimal tree found`
         #       II.
@@ -155,7 +213,7 @@ class StructureBuilder:
                         min_j = current_connections_index[min_listindex][1]
                         # and drop it
                         cpower[min_i][min_j] = 0
-        
+
         # max_depth feature
         if max_depth > 0:
             cpower_changed = True
@@ -174,7 +232,7 @@ class StructureBuilder:
                     far_j = longest_path[-1]
                     # Drop it
                     cpower[far_i][far_j] = 0
-        
+
         # Make structure
         G = nx.from_numpy_array(cpower, create_using=nx.DiGraph)
         try:
@@ -232,69 +290,39 @@ class Utils:
 if __name__ == '__main__':
     # Setting env
     np.set_printoptions(suppress=True, linewidth=np.inf)  # disable mantissa view for numbers
-    test_env = MultiagentEnvironment(agents_amount=9, time_period=5)
-    test_env.nodes = [
+    env = MultiagentEnvironment(4, 10)
+    env.set_start_node_coords([
+        (0.0, 0.0),
+        (4.0, 0.0),
+        (10.0, 0.0),
+        (13.0, 0.0),
+    ])
+    env.set_start_controls([
+        (20.0, 0.0),
+        (0.0, 20.0),
+        (-20.0, 0.0),
+        (0.0, -20.0),
+    ])
+    env.calculate_structs_for_each_time()
+    env.print_debug()
+    env.set_nodes_amount(5)
+    env.set_start_node_coords([
         (0.0, 0.0),
         (4.0, 0.0),
         (10.0, 0.0),
         (13.0, 0.0),
         (20.0, 0.0),
-        (0.0, 3.0),
-        (0.0, 6.0),
-        (0.0, -3.0),
-        (-5.0, 0.0),
-    ]
-    test_env.control = [
-        (0.0, 0.0),
-        (0.0, 0.0),
-        (0.0, 0.0),
-        (0.0, 0.0),
-        (0.0, 0.0),
-        (0.0, 0.0),
-        (0.0, 0.0),
-        (0.0, 0.0),
-        (0.0, 0.0),
-    ]
-    test_env.A = np.array([1, 1.3, 1.9, -1.1, 1, 1, 1, 1, 1.9], float)
-    test_env.B = np.array([1, 2, 1, 2, 1, 2, 1, 2, 1], float)
-    rolow = 3
-    roupp = 1000
-
-    print('test_env info:')
-    print('\tagents_amount = {}'.format(test_env.agents_amount))
-    print('\ttime_period = {}'.format(test_env.time_period))
-
-    print('\tnodes = ')
-    print('\t\tx\ty')
-    print('\t\t------------------')
-    for node in test_env.nodes:
-        print('\t\t{}\t{}'.format(node[0], node[1]))
-    
-    print('\tcontrol = ')
-    print('\t\tx\ty')
-    print('\t\t------------------')
-    for node in test_env.control:
-        print('\t\t{}\t{}'.format(node[0], node[1]))
-
-    print('\tA = {}'.format(test_env.A))
-    print('\tB = {}'.format(test_env.B))
-    # For each time build struct
-    for t in range(test_env.time_period):
-        print('--------------------------------------------------------')
-        print('t = {}'.format(t))
-        print('nodes = ')
-        print('\tx\ty')
-        print('\t------------------')
-        for i in test_env.nodes:
-            print('\t{}\t{}'.format(i[0], i[1]))
-        print()
-        cprob = test_env.builder.connection_probability(test_env.nodes, rolow, roupp)
-        tree = test_env.builder.build_tree(cprob, as_matrix=True)
-        print('tree = \n{}'.format(tree))
-        test_env.nodes_to_next_time()
-
-
-
+    ])
+    env.set_start_controls([
+        (20.0, 0.0),
+        (0.0, 20.0),
+        (-20.0, 0.0),
+        (0.0, -20.0),
+        (20.0, 20.0),
+    ])
+    env.calculate_structs_for_each_time()
+    print('-----------------------')
+    env.print_debug()
     #for i in test_env.nodes:
     #    print('({}, {})'.format(i[0], i[1]))
     #print('\n')
@@ -313,7 +341,7 @@ if __name__ == '__main__':
     #    (0.0, 6.0),
     #    (0.0, -3.0),
     #    (-5.0, 0.0),
-    #) 
+    #)
     #print('\ntest_coords:')
     #for i in test_coords:
     #    print('({}, {})'.format(i[0], i[1]))
@@ -325,7 +353,7 @@ if __name__ == '__main__':
     #print('\nconnection_power:')
     #test_cpower = sb.connection_power(test_cprob)
     #print(test_cpower)
-    # 
+    #
     #print('\nstructure matrix data:')
     #test_adjmx = sb.build_tree(test_cprob)
     #print('  __class__: {}'.format(test_adjmx.__class__))

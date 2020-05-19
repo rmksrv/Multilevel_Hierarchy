@@ -4,99 +4,6 @@ import numpy as np
 import networkx as nx
 
 
-class MultiagentEnvironment:
-    '''
-    Class, who defines contorlable multiagent env in two-dim space, where every agent(node) movement describes as:
-        x[k+1] == A[j, 0]*x[k] + B[j, 0]u[k]
-        y[k+1] == A[j, 1]*y[k] + B[j, 1]u[k]
-    '''
-    def __init__(self, nodes_amount: int, time: int):
-        self.set_vars(nodes_amount, time)
-
-    def set_vars(self, nodes_amount, time):
-        self.builder = StructureBuilder()
-        self.time = time
-        self.nodes_amount = nodes_amount
-        self.node_coords = []
-        self.controls = []
-        self.A = [(1, 1) for i in range(nodes_amount)]
-        self.B = [(1, 1) for i in range(nodes_amount)]
-        self.rolow = 5
-        self.roupp = 300
-        self.cprobs = []
-        self.cpowers = []
-        self.structs = []
-
-
-    def print_debug(self):
-        print('env:')
-        print('  time = {}'.format(self.time))
-        print('  nodes_amount = {}'.format(self.nodes_amount))
-        print('  rolow = {}'.format(self.rolow))
-        print('  roupp = {}'.format(self.roupp))
-        print('  A =', end='\n    ')
-        print(*self.A, sep='\n    ')
-        print('  B =', end='\n    ')
-        print(*self.B, sep='\n    ')
-        print('  node_coords  =', end='\n    ')
-        print(*self.node_coords , sep='\n    ')
-        #print('  cpowers =')
-        #i = 0
-        #for cpower in self.cpowers:
-        #    print('{}:'.format(i))
-        #    print(np.array(cpower))
-        #    i += 1
-
-        #print('  controls = {}'.format(self.controls))
-
-    def reset_node_coords(self, node_coords):
-        self.node_coords.clear()
-        self.node_coords.append(node_coords)
-
-    def reset_controls(self, controls):
-        self.controls.clear()
-        self.controls.append(controls)
-
-    def set_nodes_amount(self, nodes_amount):
-        self.set_vars(nodes_amount, self.time)
-
-    def calculate_structs_for_each_time(self, recalculate_probs=False, max_slaves=0, max_depth=0):
-        t = 0
-        curr_node_coords = self.node_coords[0]
-        curr_controls = self.controls[0]
-        self.node_coords.clear()
-        self.controls.clear()
-        for t in range(self.time):
-            curr_cprob = self.builder.connection_probability(curr_node_coords, self.rolow, self.roupp)
-            curr_cpower = self.builder.connection_power(curr_cprob)
-            curr_struct = self.builder.build_tree(
-                curr_cprob,
-                recalculate_probs=recalculate_probs,
-                max_slaves=max_slaves,
-                max_depth=max_depth,
-            )
-            self.node_coords.append(curr_node_coords)
-            self.controls.append(curr_controls)
-            self.cprobs.append(curr_cprob)
-            self.cpowers.append(curr_cpower)
-            self.structs.append(curr_struct)
-            # calc next nodes and controls
-            curr_node_coords = self.get_next_node_coords(curr_node_coords, curr_controls)
-            curr_controls = self.get_next_controls(curr_node_coords, curr_controls)
-            t +=1
-
-    def get_next_node_coords(self, node_coords, controls):
-        next_node_coords = []
-        for node in range(len(node_coords)):
-            next_x = self.A[node][0]*node_coords[node][0] + self.B[node][0]*controls[node][0]
-            next_y = self.A[node][1]*node_coords[node][1] + self.B[node][1]*controls[node][1]
-            next_node_coords.append((next_x, next_y))
-        return next_node_coords
-
-    def get_next_controls(self, node_coords, controls):
-        return controls
-
-
 class StructureBuilder:
     '''
     Class, who builds optimal structure for single moment
@@ -236,13 +143,19 @@ class StructureBuilder:
                     cpower[far_i][far_j] = 0
 
         # Make structure
+        # NOTE:
+        # - maximum_spanning_arborescence -- if there is not possible to build with this set of nodes
+        #     then it throws an exception - no arborescence can be built
+        # - maximum_branching -- it builds an branching even if there is all zero weights
         G = nx.from_numpy_array(cpower, create_using=nx.DiGraph)
         try:
-            res = nx.maximum_spanning_arborescence(G, default=0)
+            #res = nx.maximum_spanning_arborescence(G, default=0)
+            res = nx.maximum_branching(G, default=0)
             if as_matrix:
                 res = nx.to_numpy_array(res)
         except nx.exception.NetworkXException:  # if no tree found
             raise  # handle this in interface part
+            # We find out which node has no connection and drop it
         return res
 
 class Utils:
@@ -292,95 +205,64 @@ class Utils:
 if __name__ == '__main__':
     # Setting env
     np.set_printoptions(suppress=True, linewidth=np.inf)  # disable mantissa view for numbers
-    env = MultiagentEnvironment(4, 10)
-    env.reset_node_coords([
-        (0.0, 0.0),
-        (4.0, 0.0),
-        (10.0, 0.0),
-        (13.0, 0.0),
-    ])
-    env.reset_controls([
-        (20.0, 0.0),
-        (0.0, 20.0),
-        (-20.0, 0.0),
-        (0.0, -20.0),
-    ])
-    env.calculate_structs_for_each_time()
-    env.print_debug()
-    env.set_nodes_amount(5)
-    env.reset_node_coords([
+    sb = StructureBuilder()
+    rolow = 4
+    roupp = 100
+    test_coords = (
         (0.0, 0.0),
         (4.0, 0.0),
         (10.0, 0.0),
         (13.0, 0.0),
         (20.0, 0.0),
-    ])
-    env.reset_controls([
-        (20.0, 0.0),
-        (0.0, 20.0),
-        (-20.0, 0.0),
-        (0.0, -20.0),
-        (20.0, 20.0),
-    ])
-    env.calculate_structs_for_each_time()
-    print('-----------------------')
-    env.print_debug()
-    #for i in test_env.nodes:
-    #    print('({}, {})'.format(i[0], i[1]))
-    #print('\n')
-    #test_env.nodes_to_next_time()
-    #for i in test_env.nodes:
-    #    print('({}, {})'.format(i[0], i[1]))
-    #print('\n')
-    #sb = StructureBuilder()
-    #test_coords = (
-    #    (0.0, 0.0),
-    #    (4.0, 0.0),
-    #    (10.0, 0.0),
-    #    (13.0, 0.0),
-    #    (20.0, 0.0),
-    #    (0.0, 3.0),
-    #    (0.0, 6.0),
-    #    (0.0, -3.0),
-    #    (-5.0, 0.0),
-    #)
-    #print('\ntest_coords:')
-    #for i in test_coords:
-    #    print('({}, {})'.format(i[0], i[1]))
-    #
-    #print('\nconnection_probability:')
-    #test_cprob = sb.connection_probability(test_coords)
-    #print(test_cprob)
-    #
-    #print('\nconnection_power:')
-    #test_cpower = sb.connection_power(test_cprob)
-    #print(test_cpower)
-    #
-    #print('\nstructure matrix data:')
-    #test_adjmx = sb.build_tree(test_cprob)
-    #print('  __class__: {}'.format(test_adjmx.__class__))
-    #print('  is_tree: {}'.format(nx.is_tree(test_adjmx)))
-    #print('  is_arborescence: {}'.format(nx.is_arborescence(test_adjmx)))
-    #print('  longest_path: {}'.format(nx.dag_longest_path(test_adjmx)))
-    #print('  longest_path_length: {}'.format(Utils.tree_depth(test_adjmx)))
-    #
-    #print('\nstructure matrix:')
-    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True)
-    #print(test_adjmx)
-    #
-    #print('\nstructure matrix (recalculate_probs=True):')
-    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True, recalculate_probs=True)
-    #print(test_adjmx)
-    #
-    #print('\nstructure matrix (max_slaves=2):')
-    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_slaves=2)
-    #print(test_adjmx)
-    #
-    #print('\nstructure matrix (max_depth=3):')
-    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_depth=3)
-    #print(test_adjmx)
-    #
-    #print('\nstructure matrix (max_slaves=2, max_depth=3):')
-    #test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_slaves=2, max_depth=3)
-    #print(test_adjmx)
+        (0.0, 3.0),
+        (0.0, 6.0),
+        (0.0, -3.0),
+        (-5.0, 0.0),
+    )
+    print('\ntest_coords:')
+    for i in test_coords:
+        print('({}, {})'.format(i[0], i[1]))
+
+    print('\nconnection_probability:')
+    test_cprob = sb.connection_probability(test_coords, rolow, roupp)
+    print(test_cprob)
+
+    print('\nconnection_power:')
+    test_cpower = sb.connection_power(test_cprob)
+    print(test_cpower)
+
+    print('\nstructure matrix data:')
+    test_adjmx = sb.build_tree(test_cprob)
+    print('  __class__: {}'.format(test_adjmx.__class__))
+    print('  is_tree: {}'.format(nx.is_tree(test_adjmx)))
+    print('  is_arborescence: {}'.format(nx.is_arborescence(test_adjmx)))
+    print('  longest_path: {}'.format(nx.dag_longest_path(test_adjmx)))
+    print('  longest_path_length: {}'.format(Utils.tree_depth(test_adjmx)))
+
+    print('\nstructure matrix:')
+    test_adjmx = sb.build_tree(test_cprob, as_matrix=True)
+    print(test_adjmx)
+
+    print('\nstructure matrix (recalculate_probs=True):')
+    test_adjmx = sb.build_tree(test_cprob, as_matrix=True, recalculate_probs=True)
+    print(test_adjmx)
+
+    print('\nstructure matrix (max_slaves=2):')
+    test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_slaves=2)
+    print(test_adjmx)
+
+    print('\nstructure matrix (max_depth=3):')
+    test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_depth=3)
+    print(test_adjmx)
+
+    print('\nstructure matrix (max_slaves=2, max_depth=3):')
+    test_adjmx = sb.build_tree(test_cprob, as_matrix=True, max_slaves=2, max_depth=3)
+    print(test_adjmx)
+
+    #print('\nMax branching test with no features:')
+    #G = nx.from_numpy_array(test_cpower, create_using=nx.DiGraph)
+    #test_branching = nx.maximum_branching(G)
+    #import matplotlib.pyplot as plt
+    #nx.draw_networkx(test_branching)
+    #plt.show()
 

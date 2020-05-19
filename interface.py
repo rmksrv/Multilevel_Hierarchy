@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 
 # DEFAULT PARAMETERS
 DEFAULT_TIME = 5
-DEFAULT_NODES_AMOUNT = 5
 DEFAULT_ROLOW = 5
 DEFAULT_ROUPP = 100
 DEFAULT_MAX_SUB_NODES = 0
@@ -19,30 +18,16 @@ DEFAULT_NODE_COORDS = [
     (0.0, 0.0),
     (4.0, 0.0),
     (10.0, 0.0),
+    (20.0, 3.0),
     (0.0, 3.0),
-    (2.0, 6.0),
+    (0.0, 6.0),
+    (0.0, -3.0),
+    (-5.0, 0.0),
 ]
-DEFAULT_NODE_CONTROLS = [
-    (0.0, 0.0),
-    (0.0, 0.0),
-    (0.0, 0.0),
-    (0.0, 0.0),
-    (0.0, 0.0),
-]
-DEFAULT_A = [
-    (1.0, 1.0),
-    (1.0, 1.0),
-    (1.0, 1.0),
-    (1.0, 1.0),
-    (1.0, 1.0),
-]
-DEFAULT_B = [
-    (1.0, 1.0),
-    (1.0, 1.0),
-    (1.0, 1.0),
-    (1.0, 1.0),
-    (1.0, 1.0),
-]
+DEFAULT_NODE_CONTROLS = [(0.0, 0.0) for i in DEFAULT_NODE_COORDS]
+DEFAULT_A = [(1.0, 1.0) for i in DEFAULT_NODE_COORDS]
+DEFAULT_B = [(1.0, 1.0) for i in DEFAULT_NODE_COORDS]
+DEFAULT_NODES_AMOUNT = len(DEFAULT_NODE_COORDS)
 DEFAULT_ROUND_DIGIT = 4
 
 # Displaying structure window
@@ -93,7 +78,8 @@ class DisplayWin(QtWidgets.QMainWindow):
             pos=nx.planar_layout(self.history_graphs[self.current_time]),
             ax=self.ui.widget__displayGraph.canvas.axes
         )
-        #print(self.history_graphs[self.current_time])
+        # get adjacency matrix to highlight using nodes
+        print(nx.algorithms.tree.branchings.branching_weight(self.history_graphs[self.current_time], default=0))
         # connection probs
         self.ui.tableWidget__displayConnProb.setRowCount(self.nodes_amount)
         self.ui.tableWidget__displayConnProb.setColumnCount(self.nodes_amount)
@@ -144,7 +130,6 @@ class DisplayWin(QtWidgets.QMainWindow):
                 next_y = curr_controls[node][1]
                 next_controls.append((next_x, next_y))
             curr_controls = next_controls
-
 
     def build_structure(self, coords):
         # Building connection probability matrix

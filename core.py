@@ -11,12 +11,13 @@ class MultiagentEnvironment:
         y[k+1] == A[j, 1]*y[k] + B[j, 1]u[k]
     '''
     def __init__(self, nodes_amount: int, time: int):
+        self.set_vars(nodes_amount, time)
+
+    def set_vars(self, nodes_amount, time):
         self.builder = StructureBuilder()
         self.time = time
         self.nodes_amount = nodes_amount
-        self.start_node_coords = [(0, 0) for i in range(nodes_amount)]
         self.node_coords = []
-        self.start_controls = [(0, 0) for i in range(nodes_amount)]
         self.controls = []
         self.A = [(1, 1) for i in range(nodes_amount)]
         self.B = [(1, 1) for i in range(nodes_amount)]
@@ -26,16 +27,13 @@ class MultiagentEnvironment:
         self.cpowers = []
         self.structs = []
 
+
     def print_debug(self):
         print('env:')
         print('  time = {}'.format(self.time))
         print('  nodes_amount = {}'.format(self.nodes_amount))
         print('  rolow = {}'.format(self.rolow))
         print('  roupp = {}'.format(self.roupp))
-        print('  start_node_coords =', end='\n    ')
-        print(*self.start_node_coords, sep='\n    ')
-        print('  start_controls =', end='\n    ')
-        print(*self.start_controls, sep='\n    ')
         print('  A =', end='\n    ')
         print(*self.A, sep='\n    ')
         print('  B =', end='\n    ')
@@ -51,19 +49,23 @@ class MultiagentEnvironment:
 
         #print('  controls = {}'.format(self.controls))
 
-    def set_start_node_coords(self, node_coords):
-        self.start_node_coords = node_coords
+    def reset_node_coords(self, node_coords):
+        self.node_coords.clear()
+        self.node_coords.append(node_coords)
 
-    def set_start_controls(self, controls):
-        self.start_controls = controls
+    def reset_controls(self, controls):
+        self.controls.clear()
+        self.controls.append(controls)
 
     def set_nodes_amount(self, nodes_amount):
-        self.__init__(nodes_amount, self.time)
+        self.set_vars(nodes_amount, self.time)
 
     def calculate_structs_for_each_time(self, recalculate_probs=False, max_slaves=0, max_depth=0):
         t = 0
-        curr_node_coords = self.start_node_coords
-        curr_controls = self.start_controls
+        curr_node_coords = self.node_coords[0]
+        curr_controls = self.controls[0]
+        self.node_coords.clear()
+        self.controls.clear()
         for t in range(self.time):
             curr_cprob = self.builder.connection_probability(curr_node_coords, self.rolow, self.roupp)
             curr_cpower = self.builder.connection_power(curr_cprob)
@@ -291,13 +293,13 @@ if __name__ == '__main__':
     # Setting env
     np.set_printoptions(suppress=True, linewidth=np.inf)  # disable mantissa view for numbers
     env = MultiagentEnvironment(4, 10)
-    env.set_start_node_coords([
+    env.reset_node_coords([
         (0.0, 0.0),
         (4.0, 0.0),
         (10.0, 0.0),
         (13.0, 0.0),
     ])
-    env.set_start_controls([
+    env.reset_controls([
         (20.0, 0.0),
         (0.0, 20.0),
         (-20.0, 0.0),
@@ -306,14 +308,14 @@ if __name__ == '__main__':
     env.calculate_structs_for_each_time()
     env.print_debug()
     env.set_nodes_amount(5)
-    env.set_start_node_coords([
+    env.reset_node_coords([
         (0.0, 0.0),
         (4.0, 0.0),
         (10.0, 0.0),
         (13.0, 0.0),
         (20.0, 0.0),
     ])
-    env.set_start_controls([
+    env.reset_controls([
         (20.0, 0.0),
         (0.0, 20.0),
         (-20.0, 0.0),

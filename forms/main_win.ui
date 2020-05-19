@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>952</width>
-    <height>649</height>
+    <width>398</width>
+    <height>646</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -219,87 +219,6 @@
      <string>Построить структуру</string>
     </property>
    </widget>
-   <widget class="QTabWidget" name="tabWidget__displayStructure">
-    <property name="geometry">
-     <rect>
-      <x>390</x>
-      <y>10</y>
-      <width>551</width>
-      <height>551</height>
-     </rect>
-    </property>
-    <property name="currentIndex">
-     <number>1</number>
-    </property>
-    <widget class="QWidget" name="tab__displayGraph">
-     <attribute name="title">
-      <string>Граф</string>
-     </attribute>
-     <widget class="MplWidget" name="widget__displayGraph" native="true">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>521</width>
-        <height>501</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab__displayProbMatrix">
-     <attribute name="title">
-      <string>Матрица вероятностей соединения</string>
-     </attribute>
-     <widget class="QTableWidget" name="tableWidget__displayProbMatrix">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>521</width>
-        <height>501</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab__displayPowerMatrix">
-     <attribute name="title">
-      <string>Матрица сил соединения</string>
-     </attribute>
-     <widget class="QTableWidget" name="tableWidget__displayPowerMatrix">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>521</width>
-        <height>501</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-   </widget>
-   <widget class="QSlider" name="horizontalSlider__controlTime">
-    <property name="geometry">
-     <rect>
-      <x>390</x>
-      <y>580</y>
-      <width>491</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QSpinBox" name="spinBox__controlTime">
-    <property name="geometry">
-     <rect>
-      <x>890</x>
-      <y>580</y>
-      <width>51</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLabel" name="label__inputDistanceLinkOn">
     <property name="geometry">
      <rect>
@@ -368,21 +287,13 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>952</width>
+     <width>398</width>
      <height>21</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>MplWidget</class>
-   <extends>QWidget</extends>
-   <header>mplwidget.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

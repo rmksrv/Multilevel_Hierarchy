@@ -6,6 +6,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import forms.main_win as forms_mainwin
 import forms.display_structure as forms_display
 import matplotlib.pyplot as plt
+import resources_rc
 
 # DEFAULT PARAMETERS
 DEFAULT_TIME = 5
@@ -13,7 +14,7 @@ DEFAULT_ROLOW = 5
 DEFAULT_ROUPP = 100
 DEFAULT_MAX_SUB_NODES = 0
 DEFAULT_MAX_TREE_DEPTH = 0
-DEFAULT_PROB_DEPENDING = True
+DEFAULT_PROB_DEPENDING = False
 DEFAULT_NODE_COORDS = [
     (0.0, 0.0),
     (4.0, 0.0),
@@ -76,10 +77,12 @@ class DisplayWin(QtWidgets.QMainWindow):
         nx.draw_networkx(
             self.history_graphs[self.current_time],
             pos=nx.planar_layout(self.history_graphs[self.current_time]),
-            ax=self.ui.widget__displayGraph.canvas.axes
+            ax=self.ui.widget__displayGraph.canvas.axes,
+            with_label=False
         )
+        self.ui.widget__displayGraph.canvas.draw()
         # get adjacency matrix to highlight using nodes
-        print(nx.algorithms.tree.branchings.branching_weight(self.history_graphs[self.current_time], default=0))
+        #print('Overall weight = ', nx.algorithms.tree.branchings.branching_weight(self.history_graphs[self.current_time], default=0))
         adjacency_matrix = nx.to_numpy_array(self.history_graphs[self.current_time])
         # connection probs
         self.ui.tableWidget__displayConnProb.setRowCount(self.nodes_amount)
@@ -198,10 +201,15 @@ class MainWin(QtWidgets.QMainWindow):
         self.node_controls = DEFAULT_NODE_CONTROLS
         self.A = DEFAULT_A
         self.B = DEFAULT_B
+        self.prepareWidgets()
         # Syncing widgets with own values
         self.syncWidgets()
         # Connects setup
         self.initConnects()
+
+    def prepareWidgets(self):
+        pixmap = QtGui.QPixmap('resources/next_node.png').scaledToHeight(64)
+        self.ui.label__nextNode.setPixmap(pixmap)
 
     def initConnects(self):
         self.ui.lineEdit__inputTime.editingFinished.connect(self.set_time)
@@ -300,8 +308,6 @@ class MainWin(QtWidgets.QMainWindow):
 
     def build_structure(self):
         self.display_window.clear_history()
-        print('HISTORY GRAPHS AFTER FORCE CLEAN')
-        print(self.display_window.history_graphs, sep='\n')
         self.display_window.show()
         # Collect all inputs from matrices
         # x
@@ -370,9 +376,6 @@ class MainWin(QtWidgets.QMainWindow):
         self.display_window.B = self.B
         # Building structures for every time
         self.display_window.build_structure_for_ever()
-        # Print debug
-        print('HISTORY GRAPHS AFTER BUILDING')
-        print(self.display_window.history_graphs, sep='\n')
         # And syncing its widgets
         self.display_window.prepareWidgets()
         self.display_window.syncWidgets()

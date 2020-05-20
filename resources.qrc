@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/resources">
+    <file alias="nest_node.png">resources/next_node.png</file>
+</qresource>
+</RCC>

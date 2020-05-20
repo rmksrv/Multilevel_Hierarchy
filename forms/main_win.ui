@@ -6,288 +6,256 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>398</width>
-    <height>646</height>
+    <width>399</width>
+    <height>762</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTabWidget" name="tabWidget__inputMatrices">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>150</y>
-      <width>361</width>
-      <height>341</height>
-     </rect>
-    </property>
-    <property name="currentIndex">
-     <number>0</number>
-    </property>
-    <widget class="QWidget" name="tab__x">
-     <attribute name="title">
-      <string>Координаты</string>
-     </attribute>
-     <widget class="QTableWidget" name="tableWidget__inputx">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>331</width>
-        <height>291</height>
-       </rect>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout__description">
+      <item>
+       <widget class="QLabel" name="label__nextNode">
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="text">
+         <string>Система</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox__params">
+      <property name="title">
+       <string>Параметры</string>
       </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab__u">
-     <attribute name="title">
-      <string>Управление</string>
-     </attribute>
-     <widget class="QTableWidget" name="tableWidget__inputu">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>331</width>
-        <height>291</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab__A">
-     <attribute name="title">
-      <string>A</string>
-     </attribute>
-     <widget class="QTableWidget" name="tableWidget__inputA">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>331</width>
-        <height>291</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab__B">
-     <attribute name="title">
-      <string>B</string>
-     </attribute>
-     <widget class="QTableWidget" name="tableWidget__inputB">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>331</width>
-        <height>291</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-   </widget>
-   <widget class="QLabel" name="label__inputMatrices">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>122</y>
-      <width>351</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Матрицы</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit__inputNodeAmount">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>30</y>
-      <width>113</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit__inputTime">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>30</y>
-      <width>113</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label__inputTime">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>-1</y>
-      <width>111</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Время</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label__inputNodeAmount">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>-1</y>
-      <width>111</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Количество узлов</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label__inputMaxSubNodes">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>490</y>
-      <width>91</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Макс. количество
-дочерних узлов</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit__inputMaxSubNodes">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>530</y>
-      <width>113</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label__inputMaxTreeLength">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>490</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Макс. глубина дерева</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit__inputMaxTreeLength">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>530</y>
-      <width>113</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox__inputProbDepending">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>556</y>
-      <width>241</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Вероятности узлов зависят друг от друга</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton__buildStructure">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>580</y>
-      <width>361</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Построить структуру</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label__inputDistanceLinkOn">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>50</y>
-      <width>111</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Расстояние
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label__inputTime">
+         <property name="text">
+          <string>Время</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label__inputNodeAmount">
+         <property name="text">
+          <string>Количество узлов</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLineEdit" name="lineEdit__inputTime"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lineEdit__inputNodeAmount"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label__inputDistanceLinkOn">
+         <property name="text">
+          <string>Расстояние
 установки связи</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit__inputDistanceLinkOn">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>90</y>
-      <width>113</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label__inputDistanceLinkOff">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>50</y>
-      <width>111</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Расстояние
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="label__inputDistanceLinkOff">
+         <property name="text">
+          <string>Расстояние
 обрыва связи</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit__inputDistanceLinkOff">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>90</y>
-      <width>113</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton__showProbFunc">
-    <property name="geometry">
-     <rect>
-      <x>280</x>
-      <y>30</y>
-      <width>91</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Функция
-вероятности</string>
-    </property>
-   </widget>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLineEdit" name="lineEdit__inputDistanceLinkOn"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="lineEdit__inputDistanceLinkOff"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QComboBox" name="comboBox__smoothFunc"/>
+       </item>
+       <item row="4" column="1">
+        <widget class="QPushButton" name="pushButton__showProbFunc">
+         <property name="text">
+          <string>Функция вероятности</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox__matrices">
+      <property name="title">
+       <string>Матрицы</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QTabWidget" name="tabWidget__inputMatrices">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab__x">
+          <attribute name="title">
+           <string>Координаты</string>
+          </attribute>
+          <widget class="QTableWidget" name="tableWidget__inputx">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>10</y>
+             <width>331</width>
+             <height>291</height>
+            </rect>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QAbstractScrollArea::AdjustToContents</enum>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QWidget" name="tab__u">
+          <attribute name="title">
+           <string>Управление</string>
+          </attribute>
+          <widget class="QTableWidget" name="tableWidget__inputu">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>10</y>
+             <width>331</width>
+             <height>291</height>
+            </rect>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QAbstractScrollArea::AdjustToContents</enum>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QWidget" name="tab__A">
+          <attribute name="title">
+           <string>A</string>
+          </attribute>
+          <widget class="QTableWidget" name="tableWidget__inputA">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>10</y>
+             <width>331</width>
+             <height>291</height>
+            </rect>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QAbstractScrollArea::AdjustToContents</enum>
+           </property>
+          </widget>
+         </widget>
+         <widget class="QWidget" name="tab__B">
+          <attribute name="title">
+           <string>B</string>
+          </attribute>
+          <widget class="QTableWidget" name="tableWidget__inputB">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>10</y>
+             <width>331</width>
+             <height>291</height>
+            </rect>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QAbstractScrollArea::AdjustToContents</enum>
+           </property>
+           <property name="columnCount">
+            <number>2</number>
+           </property>
+           <column/>
+           <column/>
+          </widget>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox__features">
+      <property name="title">
+       <string>Дополнительные возможности</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label__inputMaxSubNodes">
+         <property name="text">
+          <string>Макс. количество
+дочерних узлов</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label__inputMaxTreeLength">
+         <property name="text">
+          <string>Макс. глубина дерева</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLineEdit" name="lineEdit__inputMaxSubNodes"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lineEdit__inputMaxTreeLength"/>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QCheckBox" name="checkBox__inputProbDepending">
+         <property name="text">
+          <string>Вероятности узлов зависят друг от друга</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="pushButton__loadParams">
+        <property name="text">
+         <string>Загрузить</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton__saveParams">
+        <property name="text">
+         <string>Сохранить</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton__buildStructure">
+        <property name="text">
+         <string>Построить структуру</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>398</width>
+     <width>399</width>
      <height>21</height>
     </rect>
    </property>

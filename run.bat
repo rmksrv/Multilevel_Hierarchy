@@ -1,1 +1,1 @@
-python interface.py
+python -W ignore interface.py

@@ -80,23 +80,32 @@ class DisplayWin(QtWidgets.QMainWindow):
         )
         # get adjacency matrix to highlight using nodes
         print(nx.algorithms.tree.branchings.branching_weight(self.history_graphs[self.current_time], default=0))
+        adjacency_matrix = nx.to_numpy_array(self.history_graphs[self.current_time])
         # connection probs
         self.ui.tableWidget__displayConnProb.setRowCount(self.nodes_amount)
         self.ui.tableWidget__displayConnProb.setColumnCount(self.nodes_amount)
         for i in range(self.nodes_amount):
             for j in range(self.nodes_amount):
+                # Set value of cell
                 self.ui.tableWidget__displayConnProb.setItem(i, j, QtWidgets.QTableWidgetItem(
                     str(round(self.history_conn_probs[self.current_time][i][j], DEFAULT_ROUND_DIGIT))
                 ))
+                # If it is actual connection, then highlight it
+                if adjacency_matrix[i][j] != 0:
+                    self.ui.tableWidget__displayConnProb.item(i, j).setBackground(QtGui.QColor(100, 200, 100))
         self.ui.tableWidget__displayConnProb.resizeColumnsToContents()
         # connection powers
         self.ui.tableWidget__displayConnPower.setRowCount(self.nodes_amount)
         self.ui.tableWidget__displayConnPower.setColumnCount(self.nodes_amount)
         for i in range(self.nodes_amount):
             for j in range(self.nodes_amount):
+                # Set value of cell
                 self.ui.tableWidget__displayConnPower.setItem(i, j, QtWidgets.QTableWidgetItem(
                     str(round(self.history_conn_powers[self.current_time][i][j], DEFAULT_ROUND_DIGIT))
                 ))
+                # If it is actual connection, then highlight it
+                if adjacency_matrix[i][j] != 0:
+                    self.ui.tableWidget__displayConnPower.item(i, j).setBackground(QtGui.QColor(100, 200, 100))
         self.ui.tableWidget__displayConnPower.resizeColumnsToContents()
 
     def build_structure_for_ever(self):
@@ -290,6 +299,9 @@ class MainWin(QtWidgets.QMainWindow):
         print('prob_depending -> {}'.format(self.prob_depending))
 
     def build_structure(self):
+        self.display_window.clear_history()
+        print('HISTORY GRAPHS AFTER FORCE CLEAN')
+        print(self.display_window.history_graphs, sep='\n')
         self.display_window.show()
         # Collect all inputs from matrices
         # x
@@ -358,6 +370,9 @@ class MainWin(QtWidgets.QMainWindow):
         self.display_window.B = self.B
         # Building structures for every time
         self.display_window.build_structure_for_ever()
+        # Print debug
+        print('HISTORY GRAPHS AFTER BUILDING')
+        print(self.display_window.history_graphs, sep='\n')
         # And syncing its widgets
         self.display_window.prepareWidgets()
         self.display_window.syncWidgets()

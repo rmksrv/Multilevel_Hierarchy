@@ -83,8 +83,10 @@ class StructureBuilder:
                 div = 1  # divider of conn power
                 for j in range(msize):
                     if base_tree[i][j] > 0:
-                        cpower[i][j] = cpower[i][j] / div
+                        #cpower[i][j] = cpower[i][j] / div
+                        cprob[i][j] = cprob[i][j] / div
                         div *= 2
+            cpower = self.connection_power(cprob)
 
         # max_slaves feature
         # bug:

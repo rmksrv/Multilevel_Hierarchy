@@ -1,7 +1,8 @@
 import sys
-from core import StructureBuilder, Utils
+import pickle
 import networkx as nx
 import numpy as np
+from core import StructureBuilder, Utils
 from PyQt5 import QtCore, QtGui, QtWidgets
 import forms.main_win as forms_mainwin
 import forms.display_structure as forms_display
@@ -221,6 +222,8 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.checkBox__inputProbDepending.clicked.connect(self.switch_prob_depending)
         self.ui.pushButton__showProbFunc.clicked.connect(self.show_prob_func)
         self.ui.pushButton__buildStructure.clicked.connect(self.build_structure)
+        self.ui.pushButton__saveParams.clicked.connect(self.save_parameters)
+        self.ui.pushButton__loadParams.clicked.connect(self.load_parameters)
 
     def syncWidgets(self):
         self.ui.lineEdit__inputTime.setText(str(self.time))
@@ -306,9 +309,7 @@ class MainWin(QtWidgets.QMainWindow):
         self.prob_depending = not self.prob_depending
         print('prob_depending -> {}'.format(self.prob_depending))
 
-    def build_structure(self):
-        self.display_window.clear_history()
-        self.display_window.show()
+    def collect_matrices(self):
         # Collect all inputs from matrices
         # x
         self.node_coords.clear()
@@ -362,7 +363,13 @@ class MainWin(QtWidgets.QMainWindow):
                 warning_msg.exec_()
                 return
             self.B.append((x, y))
+
+
+    def build_structure(self):
+        self.display_window.clear_history()
+        self.display_window.show()
         # Pass all params to display window
+        self.collect_matrices()
         self.display_window.time = self.time
         self.display_window.nodes_amount = self.nodes_amount
         self.display_window.rolow = self.rolow
@@ -379,6 +386,44 @@ class MainWin(QtWidgets.QMainWindow):
         # And syncing its widgets
         self.display_window.prepareWidgets()
         self.display_window.syncWidgets()
+
+    def save_parameters(self):
+        self.collect_matrices()
+        data_to_save = {
+            'time': self.time,
+            'nodes_amount': self.nodes_amount,
+            'rolow': self.rolow,
+            'roupp': self.roupp,
+            'max_sub_nodes': self.max_sub_nodes,
+            'max_tree_depth': self.max_tree_depth,
+            'prob_depending': self.prob_depending,
+            'node_coords': self.node_coords,
+            'node_controls': self.node_controls,
+            'A': self.A,
+            'B': self.B,
+        }
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Сохранить')
+        if filename:
+            with open(filename, 'wb') as f:
+                pickle.dump(data_to_save, f)
+
+    def load_parameters(self):
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Загрузить')
+        if filename:
+            with open(filename, 'rb') as f:
+                data = pickle.load(f)
+            self.time = data['time']
+            self.nodes_amount = data['nodes_amount']
+            self.rolow = data['rolow']
+            self.roupp = data['roupp']
+            self.max_sub_nodes = data['max_sub_nodes']
+            self.max_tree_depth = data['max_tree_depth']
+            self.prob_depending = data['prob_depending']
+            self.node_coords = data['node_coords']
+            self.node_controls = data['node_controls']
+            self.A = data['A']
+            self.B = data['B']
+            self.syncWidgets()
 
 
 if __name__=='__main__':

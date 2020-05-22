@@ -6,152 +6,183 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>772</width>
-    <height>587</height>
+    <width>838</width>
+    <height>584</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <widget class="QTabWidget" name="tabWidget__left">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>251</width>
+      <height>501</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="tab__displayx">
+     <attribute name="title">
+      <string>Координаты</string>
+     </attribute>
+     <widget class="QTableWidget" name="tableWidget__displayx">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>221</width>
+        <height>451</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab__displayu">
+     <attribute name="title">
+      <string>Управление</string>
+     </attribute>
+     <widget class="QTableWidget" name="tableWidget__displayu">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>221</width>
+        <height>451</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QTabWidget" name="tabWidget__right">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>10</y>
+      <width>561</width>
+      <height>501</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="tab__displayGraph">
+     <attribute name="title">
+      <string>Граф</string>
+     </attribute>
+     <widget class="MplWidget" name="widget__displayGraph" native="true">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>541</width>
+        <height>451</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab__displayConnProb">
+     <attribute name="title">
+      <string>Вероятности соединения</string>
+     </attribute>
+     <widget class="QTableWidget" name="tableWidget__displayConnProb">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>541</width>
+        <height>451</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab__displayConnPower">
+     <attribute name="title">
+      <string>Силы соединения</string>
+     </attribute>
+     <widget class="QTableWidget" name="tableWidget__displayConnPower">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>541</width>
+        <height>451</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QComboBox" name="comboBox__layoutSelect">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>520</y>
+      <width>121</width>
+      <height>20</height>
+     </rect>
+    </property>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QTabWidget" name="tabWidget__left">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="tab__displayx">
-         <attribute name="title">
-          <string>Координаты</string>
-         </attribute>
-         <widget class="QTableWidget" name="tableWidget__displayx">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>151</width>
-            <height>451</height>
-           </rect>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="tab__displayu">
-         <attribute name="title">
-          <string>Управление</string>
-         </attribute>
-         <widget class="QTableWidget" name="tableWidget__displayu">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>271</width>
-            <height>451</height>
-           </rect>
-          </property>
-         </widget>
-        </widget>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTabWidget" name="tabWidget__right">
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="tab__displayGraph">
-         <attribute name="title">
-          <string>Граф</string>
-         </attribute>
-         <widget class="MplWidget" name="widget__displayGraph" native="true">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>541</width>
-            <height>451</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="tab__displayConnProb">
-         <attribute name="title">
-          <string>Вероятности соединения</string>
-         </attribute>
-         <widget class="QTableWidget" name="tableWidget__displayConnProb">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>541</width>
-            <height>451</height>
-           </rect>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="tab__displayConnPower">
-         <attribute name="title">
-          <string>Силы соединения</string>
-         </attribute>
-         <widget class="QTableWidget" name="tableWidget__displayConnPower">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>10</y>
-            <width>541</width>
-            <height>451</height>
-           </rect>
-          </property>
-         </widget>
-        </widget>
-       </widget>
-      </item>
-     </layout>
+     <property name="text">
+      <string>Планарный вид</string>
+     </property>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QComboBox" name="comboBox__layoutSelect"/>
-      </item>
-      <item>
-       <widget class="QSlider" name="horizontalSlider__currentTime">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="spinBox__currentTime">
-        <property name="minimumSize">
-         <size>
-          <width>30</width>
-          <height>0</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <property name="text">
+      <string>Декартова плоскость</string>
+     </property>
     </item>
-   </layout>
+   </widget>
+   <widget class="QSlider" name="horizontalSlider__currentTime">
+    <property name="geometry">
+     <rect>
+      <x>13</x>
+      <y>520</y>
+      <width>641</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="spinBox__currentTime">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>520</y>
+      <width>39</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>30</width>
+      <height>0</height>
+     </size>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>772</width>
+     <width>838</width>
      <height>21</height>
     </rect>
    </property>

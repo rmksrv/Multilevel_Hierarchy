@@ -48,12 +48,14 @@ class DisplayWin(QtWidgets.QMainWindow):
         self.history_graphs = []
         self.history_conn_probs = []
         self.history_conn_powers = []
+        self.selected_layout = self.ui.comboBox__layoutSelect.currentText()
         # Connects setup
         self.initConnects()
 
     def initConnects(self):
         self.ui.horizontalSlider__currentTime.valueChanged.connect(self.set_time_by_scrollbar)
         self.ui.spinBox__currentTime.valueChanged.connect(self.set_time_by_spinbox)
+        self.ui.comboBox__layoutSelect.activated[str].connect(self.set_selected_layout)
 
     def prepareWidgets(self):
         self.ui.horizontalSlider__currentTime.setMaximum(self.time - 1)
@@ -78,9 +80,16 @@ class DisplayWin(QtWidgets.QMainWindow):
         self.ui.tableWidget__displayu.resizeColumnsToContents()
         # graphs
         self.ui.widget__displayGraph.canvas.axes.clear()
+        # Selecting a layout from self.selected_layout
+        if self.selected_layout == 'Планарный вид':
+            pos = nx.planar_layout(self.history_graphs[self.current_time])
+        elif self.selected_layout == 'Декартова плоскость':
+            pos = self.cartesian_coordinate_layout()
+            #pos = nx.planar_layout(self.history_graphs[self.current_time])
+        # And draw the graph
         nx.draw_networkx(
             self.history_graphs[self.current_time],
-            pos=nx.planar_layout(self.history_graphs[self.current_time]),
+            pos=pos,
             ax=self.ui.widget__displayGraph.canvas.axes,
             with_label=False
         )
@@ -167,6 +176,12 @@ class DisplayWin(QtWidgets.QMainWindow):
         }
         return res
 
+    def cartesian_coordinate_layout(self):
+        pos = {i: node for i, node in enumerate(self.history_coords[self.current_time])}
+        #for i, node in enumerate(self.history_coords[self.current_time]):
+        #    print('{}: {}'.format(i, node))
+        return pos
+
     def clear_history(self):
         self.history_coords.clear()
         self.history_controls.clear()
@@ -183,6 +198,11 @@ class DisplayWin(QtWidgets.QMainWindow):
         self.current_time = int(self.ui.spinBox__currentTime.value())
         self.ui.horizontalSlider__currentTime.setValue(self.current_time)
         self.syncWidgets()
+
+    def set_selected_layout(self):
+        self.selected_layout = self.ui.comboBox__layoutSelect.currentText()
+        self.syncWidgets()
+
 
 # Main Window (where you can set params of system)
 class MainWin(QtWidgets.QMainWindow):

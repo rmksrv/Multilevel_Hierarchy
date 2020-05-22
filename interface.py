@@ -27,10 +27,10 @@ DEFAULT_NODE_COORDS = [
     (0.0, -3.0),
     (-5.0, 0.0),
 ]
-DEFAULT_NODE_CONTROLS = [(0.0, 0.0) for i in DEFAULT_NODE_COORDS]
-DEFAULT_A = [(1.0, 1.0) for i in DEFAULT_NODE_COORDS]
-DEFAULT_B = [(1.0, 1.0) for i in DEFAULT_NODE_COORDS]
 DEFAULT_NODES_AMOUNT = len(DEFAULT_NODE_COORDS)
+DEFAULT_NODE_CONTROLS = [(0.0, 0.0) for i in DEFAULT_NODE_COORDS]
+DEFAULT_A = np.eye(DEFAULT_NODES_AMOUNT).tolist()
+DEFAULT_B = [(1.0, 1.0) for i in DEFAULT_NODE_COORDS]
 DEFAULT_ROUND_DIGIT = 4
 DEFAULT_SMOOTHING_FUNC = 'exp(b-a)/((x-a)(x-b))'
 
@@ -201,20 +201,13 @@ class DisplayWin(QtWidgets.QMainWindow):
             self.history_conn_probs.append(curr_cprob)
             self.history_conn_powers.append(curr_cpower)
             # Calculating next coords and controls
-            # coords
-            next_coords = []
-            for node in range(len(curr_coords)):
-                next_x = self.A[node][0]*curr_coords[node][0] + self.B[node][0]*curr_controls[node][0]
-                next_y = self.A[node][1]*curr_coords[node][1] + self.B[node][1]*curr_controls[node][1]
-                next_coords.append((next_x, next_y))
-            curr_coords = next_coords
+            npA = np.array(self.A)
+            npX = np.array(curr_coords)
+            curr_coords = (npA.dot(npX) + np.array(curr_controls)).tolist()
             # controls
-            next_controls = []
-            for node in range(len(curr_controls)):  # - no changes for now
-                next_x = curr_controls[node][0]
-                next_y = curr_controls[node][1]
-                next_controls.append((next_x, next_y))
-            curr_controls = next_controls
+            npB = np.array(self.B)
+            npU = np.array(curr_controls)
+            curr_controls = (npB*npU).tolist()
 
     def build_structure(self, coords):
         # Building connection probability matrix
@@ -332,6 +325,7 @@ class MainWin(QtWidgets.QMainWindow):
         for i, node in enumerate(self.node_coords):
             self.ui.tableWidget__inputx.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__inputx.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
+        self.ui.tableWidget__inputx.resizeColumnsToContents()
 
     def syncNodeControlsTable(self):
         self.ui.tableWidget__inputu.setRowCount(self.nodes_amount)
@@ -341,15 +335,17 @@ class MainWin(QtWidgets.QMainWindow):
         for i, node in enumerate(self.node_controls):
             self.ui.tableWidget__inputu.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__inputu.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
+        self.ui.tableWidget__inputu.resizeColumnsToContents()
 
     def syncTableA(self):
         self.ui.tableWidget__inputA.setRowCount(self.nodes_amount)
-        self.ui.tableWidget__inputA.setColumnCount(2)
-        self.ui.tableWidget__inputA.setHorizontalHeaderLabels(['x', 'y'])
+        self.ui.tableWidget__inputA.setColumnCount(self.nodes_amount)
+        self.ui.tableWidget__inputA.setHorizontalHeaderLabels(str(i) for i in range(self.nodes_amount))
         self.ui.tableWidget__inputA.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
-        for i, node in enumerate(self.A):
-            self.ui.tableWidget__inputA.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
-            self.ui.tableWidget__inputA.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
+        for i, row in enumerate(self.A):
+            for j, node in enumerate(row):
+                self.ui.tableWidget__inputA.setItem(i, j, QtWidgets.QTableWidgetItem(str(node)))
+        self.ui.tableWidget__inputA.resizeColumnsToContents()
 
     def syncTableB(self):
         self.ui.tableWidget__inputB.setRowCount(self.nodes_amount)
@@ -359,6 +355,7 @@ class MainWin(QtWidgets.QMainWindow):
         for i, node in enumerate(self.B):
             self.ui.tableWidget__inputB.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__inputB.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
+        self.ui.tableWidget__inputB.resizeColumnsToContents()
 
     def show_prob_func(self):
         calc_amount = 200
@@ -376,12 +373,13 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.tableWidget__inputu.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputA.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputB.setRowCount(self.nodes_amount)
+        self.syncWidgets()
 
     def set_distance_link_on(self):
-        self.rolow = int(self.ui.lineEdit__inputDistanceLinkOn.text())
+        self.rolow = float(self.ui.lineEdit__inputDistanceLinkOn.text())
 
     def set_distance_link_off(self):
-        self.roupp = int(self.ui.lineEdit__inputDistanceLinkOff.text())
+        self.roupp = float(self.ui.lineEdit__inputDistanceLinkOff.text())
 
     def set_max_sub_nodes(self):
         self.max_sub_nodes = int(self.ui.lineEdit__inputMaxSubNodes.text())
@@ -426,16 +424,17 @@ class MainWin(QtWidgets.QMainWindow):
         # A
         self.A.clear()
         for i in range(self.nodes_amount):
-            try:
-                x = float(self.ui.tableWidget__inputA.item(i, 0).text())
-                y = float(self.ui.tableWidget__inputA.item(i, 1).text())
-            except AttributeError:
-                warning_msg = QtWidgets.QMessageBox()
-                warning_msg.setWindowTitle('Ошибка')
-                warning_msg.setText('Введите корректные значения А')
-                warning_msg.exec_()
-                return
-            self.A.append((x, y))
+            row = []
+            for j in range(self.nodes_amount):
+                try:
+                    row.append(float(self.ui.tableWidget__inputA.item(i, j).text()))
+                except AttributeError:
+                    warning_msg = QtWidgets.QMessageBox()
+                    warning_msg.setWindowTitle('Ошибка')
+                    warning_msg.setText('Введите корректные значения А')
+                    warning_msg.exec_()
+                    return
+            self.A.append(row)
         # B
         self.B.clear()
         for i in range(self.nodes_amount):
@@ -449,7 +448,6 @@ class MainWin(QtWidgets.QMainWindow):
                 warning_msg.exec_()
                 return
             self.B.append((x, y))
-
 
     def build_structure(self):
         self.display_window.clear_history()

@@ -141,7 +141,6 @@ class DisplayWin(QtWidgets.QMainWindow):
             pos = self.cartesian_coordinate_layout()
         # Edge labels
         edge_labels = { (u, v): round(d['weight'], DEFAULT_ROUND_DIGIT) for u, v, d in self.history_graphs[self.current_time].edges(data=True) }
-        print(edge_labels)
         # And draw the graph
         nx.draw_networkx_nodes(
             self.history_graphs[self.current_time],
@@ -165,6 +164,7 @@ class DisplayWin(QtWidgets.QMainWindow):
         nx.draw_networkx_edges(
             self.history_graphs[self.current_time],
             pos=pos,
+            alpha=0.8,
             ax=self.ui.widget__displayGraph.canvas.axes,
         )
         nx.draw_networkx_edge_labels(

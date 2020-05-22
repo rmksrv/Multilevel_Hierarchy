@@ -258,6 +258,7 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.lineEdit__inputMaxSubNodes.setText(str(self.max_sub_nodes))
         self.ui.lineEdit__inputMaxTreeLength.setText(str(self.max_tree_depth))
         self.ui.checkBox__inputProbDepending.setChecked(self.prob_depending)
+        self.ui.comboBox__smoothFunc.setCurrentText(self.smoothing_function)
         self.syncNodeCoordsTable()
         self.syncNodeControlsTable()
         self.syncTableA()
@@ -431,6 +432,7 @@ class MainWin(QtWidgets.QMainWindow):
             'node_controls': self.node_controls,
             'A': self.A,
             'B': self.B,
+            'smoothing_function': self.smoothing_function,
         }
         filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Сохранить')
         if filename:
@@ -453,6 +455,7 @@ class MainWin(QtWidgets.QMainWindow):
             self.node_controls = data['node_controls']
             self.A = data['A']
             self.B = data['B']
+            self.smoothing_function = data['smoothing_function']
             self.syncWidgets()
 
 

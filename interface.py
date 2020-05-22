@@ -31,6 +31,7 @@ DEFAULT_A = [(1.0, 1.0) for i in DEFAULT_NODE_COORDS]
 DEFAULT_B = [(1.0, 1.0) for i in DEFAULT_NODE_COORDS]
 DEFAULT_NODES_AMOUNT = len(DEFAULT_NODE_COORDS)
 DEFAULT_ROUND_DIGIT = 4
+DEFAULT_SMOOTHING_FUNC = 'exp(b-a)/((x-a)(x-b))'
 
 # Displaying structure window
 class DisplayWin(QtWidgets.QMainWindow):
@@ -66,6 +67,7 @@ class DisplayWin(QtWidgets.QMainWindow):
         for i, node in enumerate(self.history_coords[self.current_time]):
             self.ui.tableWidget__displayx.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__displayx.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
+        self.ui.tableWidget__displayx.resizeColumnsToContents()
         # controls
         self.ui.tableWidget__displayu.setRowCount(self.nodes_amount)
         self.ui.tableWidget__displayu.setColumnCount(2)
@@ -73,6 +75,7 @@ class DisplayWin(QtWidgets.QMainWindow):
         for i, node in enumerate(self.history_controls[self.current_time]):
             self.ui.tableWidget__displayu.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__displayu.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
+        self.ui.tableWidget__displayu.resizeColumnsToContents()
         # graphs
         self.ui.widget__displayGraph.canvas.axes.clear()
         nx.draw_networkx(
@@ -146,7 +149,7 @@ class DisplayWin(QtWidgets.QMainWindow):
 
     def build_structure(self, coords):
         # Building connection probability matrix
-        conn_prob = self.builder.connection_probability(coords, self.rolow, self.roupp)
+        conn_prob = self.builder.connection_probability(coords, self.rolow, self.roupp, self.smoothing_function)
         # Building connection power matrix
         conn_power = self.builder.connection_power(conn_prob)
         # And building a tree
@@ -200,6 +203,7 @@ class MainWin(QtWidgets.QMainWindow):
         self.prob_depending = DEFAULT_PROB_DEPENDING
         self.node_coords = DEFAULT_NODE_COORDS
         self.node_controls = DEFAULT_NODE_CONTROLS
+        self.smoothing_function = DEFAULT_SMOOTHING_FUNC
         self.A = DEFAULT_A
         self.B = DEFAULT_B
         self.prepareWidgets()
@@ -224,6 +228,7 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.pushButton__buildStructure.clicked.connect(self.build_structure)
         self.ui.pushButton__saveParams.clicked.connect(self.save_parameters)
         self.ui.pushButton__loadParams.clicked.connect(self.load_parameters)
+        self.ui.comboBox__smoothFunc.activated[str].connect(self.set_smoothing_function)
 
     def syncWidgets(self):
         self.ui.lineEdit__inputTime.setText(str(self.time))
@@ -272,7 +277,7 @@ class MainWin(QtWidgets.QMainWindow):
 
     def show_prob_func(self):
         calc_amount = 200
-        dots = Utils.prob_func_dots(calc_amount, self.rolow, self.roupp)
+        dots = Utils.prob_func_dots(self.smoothing_function, calc_amount, self.rolow, self.roupp)
         plt.plot(dots[0], dots[1])
         plt.show()
 
@@ -308,6 +313,10 @@ class MainWin(QtWidgets.QMainWindow):
     def switch_prob_depending(self):
         self.prob_depending = not self.prob_depending
         print('prob_depending -> {}'.format(self.prob_depending))
+
+    def set_smoothing_function(self):
+        self.smoothing_function = self.ui.comboBox__smoothFunc.currentText()
+        print('smoothing_function -> {}'.format(self.smoothing_function))
 
     def collect_matrices(self):
         # Collect all inputs from matrices
@@ -381,6 +390,7 @@ class MainWin(QtWidgets.QMainWindow):
         self.display_window.node_controls = self.node_controls
         self.display_window.A = self.A
         self.display_window.B = self.B
+        self.display_window.smoothing_function = self.smoothing_function
         # Building structures for every time
         self.display_window.build_structure_for_ever()
         # And syncing its widgets

@@ -8,7 +8,7 @@ class StructureBuilder:
     '''
     Class, who builds optimal structure for single moment
     '''
-    def connection_probability(self, coords, rolow: float, roupp: float):
+    def connection_probability(self, coords, rolow: float, roupp: float, func):
         '''
         Calculate `connection probability` mx from `coords` mx
         Coords example:
@@ -27,7 +27,7 @@ class StructureBuilder:
                 if j == 0 or i == j:
                     cprob[i][j] = 0.0
                 else:
-                    cprob[i][j] = Utils.get_prob(Utils.dist2(coords[i], coords[j]), rolow, roupp)
+                    cprob[i][j] = Utils.get_prob(Utils.dist2(coords[i], coords[j]), rolow, roupp, func)
         return cprob
 
     def connection_power(self, cprob: np.ndarray):
@@ -162,8 +162,9 @@ class StructureBuilder:
 
 class Utils:
     @staticmethod
-    def get_prob(r, rmin=7, rmax=50):
+    def get_prob(r, rmin=7, rmax=50, func='exp(b-a)/((x-a)(x-b))'):
         '''
+        func - smooting function
         rmax - max distance (more than that -> prob = 0)
         rmin - min distance to keep prob == 1
         '''
@@ -173,20 +174,28 @@ class Utils:
         elif r >= rmax:
             return 0
         else:
-            return Utils.base_func(0.5*(r+(rmin+rmax)-rmin), rmin, rmax)
+            if func == 'exp(b-a)/((x-a)(x-b))':
+                return Utils.exp_smoothing(0.5*(r+(rmin+rmax)-rmin), rmin, rmax)
+            elif func == 'cos(ax+b)':
+                return Utils.cos_smoothing(2*r-rmin, rmin, rmax)
 
-    def base_func(r, rmin=7, rmax=50):
+    def exp_smoothing(r, rmin=7, rmax=50):
         return math.exp(4/(rmax-rmin)) * math.exp((rmax - rmin) / ((r - rmin) * (r - rmax)))
 
+    def cos_smoothing(r, rmin=7, rmax=50):
+        a = (math.pi/2)/(rmax-rmin)
+        b = (-(rmin*math.pi/2)/(rmax-rmin))
+        return 0.5 * math.cos(a*r + b) + 0.5
+
     @staticmethod
-    def prob_func_dots(calc_amount=200, rmin=7, rmax=50):
+    def prob_func_dots(func='exp(b-a)/((x-a)(x-b))', calc_amount=200, rmin=7, rmax=50):
         '''
         View of get_prob func for plotting via matplotlib
         '''
         x = np.linspace(0, 1.2*rmax, calc_amount)
         fx = np.empty(calc_amount)
         for i, dot in enumerate(x):
-            fx[i] = Utils.get_prob(dot, rmin, rmax)
+            fx[i] = Utils.get_prob(dot, rmin, rmax, func)
         return x, fx
 
     @staticmethod
@@ -226,7 +235,7 @@ if __name__ == '__main__':
         print('({}, {})'.format(i[0], i[1]))
 
     print('\nconnection_probability:')
-    test_cprob = sb.connection_probability(test_coords, rolow, roupp)
+    test_cprob = sb.connection_probability(test_coords, rolow, roupp, func='exp(b-a)/((x-a)(x-b))')
     print(test_cprob)
 
     print('\nconnection_power:')

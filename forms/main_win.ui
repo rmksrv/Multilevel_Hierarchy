@@ -81,7 +81,18 @@
         <widget class="QLineEdit" name="lineEdit__inputDistanceLinkOff"/>
        </item>
        <item row="4" column="0">
-        <widget class="QComboBox" name="comboBox__smoothFunc"/>
+        <widget class="QComboBox" name="comboBox__smoothFunc">
+         <item>
+          <property name="text">
+           <string>exp(b-a)/((x-a)(x-b))</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>cos(ax+b)</string>
+          </property>
+         </item>
+        </widget>
        </item>
        <item row="4" column="1">
         <widget class="QPushButton" name="pushButton__showProbFunc">

@@ -56,6 +56,8 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.lineEdit__inputDistanceLinkOff, 3, 1, 1, 1)
         self.comboBox__smoothFunc = QtWidgets.QComboBox(self.groupBox__params)
         self.comboBox__smoothFunc.setObjectName("comboBox__smoothFunc")
+        self.comboBox__smoothFunc.addItem("")
+        self.comboBox__smoothFunc.addItem("")
         self.gridLayout.addWidget(self.comboBox__smoothFunc, 4, 0, 1, 1)
         self.pushButton__showProbFunc = QtWidgets.QPushButton(self.groupBox__params)
         self.pushButton__showProbFunc.setObjectName("pushButton__showProbFunc")
@@ -161,6 +163,8 @@ class Ui_MainWindow(object):
 "установки связи"))
         self.label__inputDistanceLinkOff.setText(_translate("MainWindow", "Расстояние\n"
 "обрыва связи"))
+        self.comboBox__smoothFunc.setItemText(0, _translate("MainWindow", "exp(b-a)/((x-a)(x-b))"))
+        self.comboBox__smoothFunc.setItemText(1, _translate("MainWindow", "cos(ax+b)"))
         self.pushButton__showProbFunc.setText(_translate("MainWindow", "Функция вероятности"))
         self.groupBox__matrices.setTitle(_translate("MainWindow", "Матрицы"))
         self.tabWidget__inputMatrices.setTabText(self.tabWidget__inputMatrices.indexOf(self.tab__x), _translate("MainWindow", "Координаты"))

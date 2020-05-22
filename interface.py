@@ -2,11 +2,12 @@ import sys
 import pickle
 import networkx as nx
 import numpy as np
-from core import StructureBuilder, Utils
 from PyQt5 import QtCore, QtGui, QtWidgets
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
+from core import StructureBuilder, Utils
 import forms.main_win as forms_mainwin
 import forms.display_structure as forms_display
-import matplotlib.pyplot as plt
 import resources_rc
 
 # DEFAULT PARAMETERS
@@ -40,6 +41,8 @@ class DisplayWin(QtWidgets.QMainWindow):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = forms_display.Ui_MainWindow()
         self.ui.setupUi(self)
+        # Matplotlib Toolbar
+        self.addToolBar(NavigationToolbar(self.ui.widget__displayGraph.canvas, self))
         # Vars
         self.builder = StructureBuilder()
         self.current_time = 0
@@ -62,44 +65,42 @@ class DisplayWin(QtWidgets.QMainWindow):
         self.ui.spinBox__currentTime.setMaximum(self.time - 1)
 
     def syncWidgets(self):
+        self.syncNodeCoordsTable()
+        self.syncNodeControlsTable()
+        self.syncConnectionProbsTable()
+        self.syncConnectionPowersTable()
+        self.syncGraph()
+        #print('Overall weight = ', nx.algorithms.tree.branchings.branching_weight(self.history_graphs[self.current_time], default=0))
+
+    def syncNodeCoordsTable(self):
         # coords
         self.ui.tableWidget__displayx.setRowCount(self.nodes_amount)
         self.ui.tableWidget__displayx.setColumnCount(2)
         self.ui.tableWidget__displayx.setHorizontalHeaderLabels(['x', 'y'])
+        self.ui.tableWidget__displayx.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i, node in enumerate(self.history_coords[self.current_time]):
             self.ui.tableWidget__displayx.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__displayx.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
         self.ui.tableWidget__displayx.resizeColumnsToContents()
-        # controls
+
+    def syncNodeControlsTable(self):
         self.ui.tableWidget__displayu.setRowCount(self.nodes_amount)
         self.ui.tableWidget__displayu.setColumnCount(2)
         self.ui.tableWidget__displayu.setHorizontalHeaderLabels(['x', 'y'])
+        self.ui.tableWidget__displayu.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i, node in enumerate(self.history_controls[self.current_time]):
             self.ui.tableWidget__displayu.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__displayu.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
         self.ui.tableWidget__displayu.resizeColumnsToContents()
-        # graphs
-        self.ui.widget__displayGraph.canvas.axes.clear()
-        # Selecting a layout from self.selected_layout
-        if self.selected_layout == 'Планарный вид':
-            pos = nx.planar_layout(self.history_graphs[self.current_time])
-        elif self.selected_layout == 'Декартова плоскость':
-            pos = self.cartesian_coordinate_layout()
-            #pos = nx.planar_layout(self.history_graphs[self.current_time])
-        # And draw the graph
-        nx.draw_networkx(
-            self.history_graphs[self.current_time],
-            pos=pos,
-            ax=self.ui.widget__displayGraph.canvas.axes,
-            with_label=False
-        )
-        self.ui.widget__displayGraph.canvas.draw()
+
+    def syncConnectionProbsTable(self):
         # get adjacency matrix to highlight using nodes
-        #print('Overall weight = ', nx.algorithms.tree.branchings.branching_weight(self.history_graphs[self.current_time], default=0))
         adjacency_matrix = nx.to_numpy_array(self.history_graphs[self.current_time])
         # connection probs
         self.ui.tableWidget__displayConnProb.setRowCount(self.nodes_amount)
         self.ui.tableWidget__displayConnProb.setColumnCount(self.nodes_amount)
+        self.ui.tableWidget__displayConnProb.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
+        self.ui.tableWidget__displayConnProb.setHorizontalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i in range(self.nodes_amount):
             for j in range(self.nodes_amount):
                 # Set value of cell
@@ -110,9 +111,15 @@ class DisplayWin(QtWidgets.QMainWindow):
                 if adjacency_matrix[i][j] != 0:
                     self.ui.tableWidget__displayConnProb.item(i, j).setBackground(QtGui.QColor(100, 200, 100))
         self.ui.tableWidget__displayConnProb.resizeColumnsToContents()
+
+    def syncConnectionPowersTable(self):
+        # get adjacency matrix to highlight using nodes
+        adjacency_matrix = nx.to_numpy_array(self.history_graphs[self.current_time])
         # connection powers
         self.ui.tableWidget__displayConnPower.setRowCount(self.nodes_amount)
         self.ui.tableWidget__displayConnPower.setColumnCount(self.nodes_amount)
+        self.ui.tableWidget__displayConnPower.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
+        self.ui.tableWidget__displayConnPower.setHorizontalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i in range(self.nodes_amount):
             for j in range(self.nodes_amount):
                 # Set value of cell
@@ -123,6 +130,53 @@ class DisplayWin(QtWidgets.QMainWindow):
                 if adjacency_matrix[i][j] != 0:
                     self.ui.tableWidget__displayConnPower.item(i, j).setBackground(QtGui.QColor(100, 200, 100))
         self.ui.tableWidget__displayConnPower.resizeColumnsToContents()
+
+    def syncGraph(self):
+        # graphs
+        self.ui.widget__displayGraph.canvas.axes.clear()
+        # Selecting a layout from self.selected_layout
+        if self.selected_layout == 'Планарный вид':
+            pos = nx.planar_layout(self.history_graphs[self.current_time])
+        elif self.selected_layout == 'Декартова плоскость':
+            pos = self.cartesian_coordinate_layout()
+        # Edge labels
+        edge_labels = { (u, v): round(d['weight'], DEFAULT_ROUND_DIGIT) for u, v, d in self.history_graphs[self.current_time].edges(data=True) }
+        print(edge_labels)
+        # And draw the graph
+        nx.draw_networkx_nodes(
+            self.history_graphs[self.current_time],
+            pos=pos,
+            nodelist=range(1,self.nodes_amount),
+            node_color='#509bff',
+            ax=self.ui.widget__displayGraph.canvas.axes,
+        )
+        nx.draw_networkx_nodes(
+            self.history_graphs[self.current_time],
+            pos=pos,
+            nodelist=[0],
+            node_color='#ff3b3f',
+            ax=self.ui.widget__displayGraph.canvas.axes,
+        )
+        nx.draw_networkx_labels(
+            self.history_graphs[self.current_time],
+            pos=pos,
+            ax=self.ui.widget__displayGraph.canvas.axes,
+        )
+        nx.draw_networkx_edges(
+            self.history_graphs[self.current_time],
+            pos=pos,
+            ax=self.ui.widget__displayGraph.canvas.axes,
+        )
+        nx.draw_networkx_edge_labels(
+            self.history_graphs[self.current_time],
+            pos=pos,
+            edge_labels=edge_labels,
+            font_size=9,
+            ax=self.ui.widget__displayGraph.canvas.axes,
+        )
+        #self.ui.widget__displayGraph.canvas.axes.axis('off')
+        self.ui.widget__displayGraph.canvas.axes.figure.tight_layout()
+        self.ui.widget__displayGraph.canvas.draw()
 
     def build_structure_for_ever(self):
         self.clear_history()
@@ -178,8 +232,6 @@ class DisplayWin(QtWidgets.QMainWindow):
 
     def cartesian_coordinate_layout(self):
         pos = {i: node for i, node in enumerate(self.history_coords[self.current_time])}
-        #for i, node in enumerate(self.history_coords[self.current_time]):
-        #    print('{}: {}'.format(i, node))
         return pos
 
     def clear_history(self):
@@ -267,7 +319,10 @@ class MainWin(QtWidgets.QMainWindow):
     def syncNodeCoordsTable(self):
         self.ui.tableWidget__inputx.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputx.setColumnCount(2)
+        # Horizontal Headers
         self.ui.tableWidget__inputx.setHorizontalHeaderLabels(['x', 'y'])
+        # Vertical Headers (default numeration is starting from '1')
+        self.ui.tableWidget__inputx.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i, node in enumerate(self.node_coords):
             self.ui.tableWidget__inputx.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__inputx.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
@@ -276,6 +331,7 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.tableWidget__inputu.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputu.setColumnCount(2)
         self.ui.tableWidget__inputu.setHorizontalHeaderLabels(['x', 'y'])
+        self.ui.tableWidget__inputu.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i, node in enumerate(self.node_controls):
             self.ui.tableWidget__inputu.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__inputu.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
@@ -284,6 +340,7 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.tableWidget__inputA.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputA.setColumnCount(2)
         self.ui.tableWidget__inputA.setHorizontalHeaderLabels(['x', 'y'])
+        self.ui.tableWidget__inputA.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i, node in enumerate(self.A):
             self.ui.tableWidget__inputA.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__inputA.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
@@ -292,6 +349,7 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.tableWidget__inputB.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputB.setColumnCount(2)
         self.ui.tableWidget__inputB.setHorizontalHeaderLabels(['x', 'y'])
+        self.ui.tableWidget__inputB.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i, node in enumerate(self.B):
             self.ui.tableWidget__inputB.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
             self.ui.tableWidget__inputB.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
@@ -304,7 +362,6 @@ class MainWin(QtWidgets.QMainWindow):
 
     def set_time(self):
         self.time = int(self.ui.lineEdit__inputTime.text())
-        print('time -> {}'.format(self.time))
 
     def set_nodes_amount(self):
         self.nodes_amount = int(self.ui.lineEdit__inputNodeAmount.text())
@@ -313,31 +370,24 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.tableWidget__inputu.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputA.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputB.setRowCount(self.nodes_amount)
-        print('nodes_amount -> {}'.format(self.nodes_amount))
 
     def set_distance_link_on(self):
         self.rolow = int(self.ui.lineEdit__inputDistanceLinkOn.text())
-        print('rolow -> {}'.format(self.rolow))
 
     def set_distance_link_off(self):
         self.roupp = int(self.ui.lineEdit__inputDistanceLinkOff.text())
-        print('roupp -> {}'.format(self.roupp))
 
     def set_max_sub_nodes(self):
         self.max_sub_nodes = int(self.ui.lineEdit__inputMaxSubNodes.text())
-        print('max_sub_nodes -> {}'.format(self.max_sub_nodes))
 
     def set_max_tree_length(self):
         self.max_tree_length = int(self.ui.lineEdit__inputMaxTreeLength.text())
-        print('max_tree_length -> {}'.format(self.max_tree_length))
 
     def switch_prob_depending(self):
         self.prob_depending = not self.prob_depending
-        print('prob_depending -> {}'.format(self.prob_depending))
 
     def set_smoothing_function(self):
         self.smoothing_function = self.ui.comboBox__smoothFunc.currentText()
-        print('smoothing_function -> {}'.format(self.smoothing_function))
 
     def collect_matrices(self):
         # Collect all inputs from matrices

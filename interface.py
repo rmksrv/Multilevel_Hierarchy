@@ -139,6 +139,12 @@ class DisplayWin(QtWidgets.QMainWindow):
             pos = nx.planar_layout(self.history_graphs[self.current_time])
         elif self.selected_layout == 'Декартова плоскость':
             pos = self.cartesian_coordinate_layout()
+        elif self.selected_layout == 'Круговой вид':
+            pos = nx.circular_layout(self.history_graphs[self.current_time])
+        elif self.selected_layout == 'Вид оболочки':
+            pos = nx.shell_layout(self.history_graphs[self.current_time])
+        elif self.selected_layout == 'Фрюхтерман-Рейнгольд':
+            pos = nx.spring_layout(self.history_graphs[self.current_time])
         # Edge labels
         edge_labels = { (u, v): round(d['weight'], DEFAULT_ROUND_DIGIT) for u, v, d in self.history_graphs[self.current_time].edges(data=True) }
         # And draw the graph

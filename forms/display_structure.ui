@@ -139,12 +139,27 @@
        <widget class="QComboBox" name="comboBox__layoutSelect">
         <item>
          <property name="text">
+          <string>Декартова плоскость</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
           <string>Планарный вид</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Декартова плоскость</string>
+          <string>Круговой вид</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Вид оболочки</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Фрюхтерман-Рейнгольд</string>
          </property>
         </item>
        </widget>

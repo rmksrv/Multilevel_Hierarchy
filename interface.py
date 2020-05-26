@@ -190,8 +190,6 @@ class DisplayWin(QtWidgets.QMainWindow):
         curr_coords = self.node_coords
         curr_controls = self.node_controls
         for curr_time in range(self.time):
-            print('curr_coords: {}'.format(curr_coords))
-            print('curr_controls: {}'.format(curr_controls))
             # Building current struct
             curr_struct = self.build_structure(curr_coords)
             curr_graph = curr_struct['graph']

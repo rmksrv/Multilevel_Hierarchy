@@ -2,6 +2,7 @@ import sys
 import pickle
 import networkx as nx
 import numpy as np
+import yaml
 from PyQt5 import QtCore, QtGui, QtWidgets
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import (NavigationToolbar2QT as NavigationToolbar)
@@ -19,17 +20,17 @@ DEFAULT_MAX_SUB_NODES = 0
 DEFAULT_MAX_TREE_DEPTH = 0
 DEFAULT_PROB_DEPENDING = False
 DEFAULT_NODE_COORDS = [
-    (0.0, 0.0),
-    (4.0, 0.0),
-    (10.0, 0.0),
-    (20.0, 3.0),
-    (0.0, 3.0),
-    (0.0, 6.0),
-    (0.0, -3.0),
-    (-5.0, 0.0),
+    [0.0, 0.0],
+    [4.0, 0.0],
+    [10.0, 0.0],
+    [20.0, 3.0],
+    [0.0, 3.0],
+    [0.0, 6.0],
+    [0.0, -3.0],
+    [-5.0, 0.0],
 ]
 DEFAULT_NODES_AMOUNT = len(DEFAULT_NODE_COORDS)
-DEFAULT_NODE_CONTROLS = [(0.0, 0.0) for i in DEFAULT_NODE_COORDS]
+DEFAULT_NODE_CONTROLS = [[0.0, 0.0] for i in DEFAULT_NODE_COORDS]
 DEFAULT_A = [np.eye(DIM).tolist() for i in DEFAULT_NODE_COORDS]
 DEFAULT_B = [np.eye(DIM).tolist() for i in DEFAULT_NODE_COORDS]
 DEFAULT_ROUND_DIGIT = 4
@@ -185,6 +186,20 @@ class DisplayWin(QtWidgets.QMainWindow):
         self.ui.widget__displayGraph.canvas.axes.figure.tight_layout()
         self.ui.widget__displayGraph.canvas.draw()
 
+    def build_from_yaml(self):
+        # Printdebug
+        #print('history_coords:')
+        #print(*self.history_coords)
+        ##
+        self.history_graphs.clear()
+        self.history_conn_probs.clear()
+        self.history_conn_powers.clear()
+        for curr_coords in self.history_coords:
+            curr_struct = self.build_structure(curr_coords)
+            self.history_graphs.append(curr_struct['graph'])
+            self.history_conn_probs.append(curr_struct['connection_prob'])
+            self.history_conn_powers.append(curr_struct['connection_power'])
+
     def build_structure_for_ever(self):
         self.clear_history()
         curr_coords = self.node_coords
@@ -274,6 +289,11 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         # other windows
         self.display_window = DisplayWin()
+        # supported extensions
+        self.__supported_ext = {
+            'Файл Pickle': '.pcl',
+            'YAML файл': '.yaml',
+        }
         # Vars
         self.time = DEFAULT_TIME
         self.nodes_amount = DEFAULT_NODES_AMOUNT
@@ -497,7 +517,7 @@ class MainWin(QtWidgets.QMainWindow):
                 warning_msg.setText('Введите корректные координаты')
                 warning_msg.exec_()
                 return
-            self.node_coords.append((x, y))
+            self.node_coords.append([x, y])
         # u
         self.node_controls.clear()
         for i in range(self.nodes_amount):
@@ -510,25 +530,40 @@ class MainWin(QtWidgets.QMainWindow):
                 warning_msg.setText('Введите корректное управление')
                 warning_msg.exec_()
                 return
-            self.node_controls.append((x, y))
+            self.node_controls.append([x, y])
 
-    def build_structure(self):
+    def build_structure_silent(self):
         self.display_window.clear_history()
-        self.display_window.show()
         # Pass all params to display window
+        self.pass_common_parameters()
         self.collect_matrices()
+        self.display_window.node_coords = self.node_coords
+        self.display_window.node_controls = self.node_controls
+        self.display_window.A = self.A
+        self.display_window.B = self.B
+        # Building structures for every time
+        self.display_window.build_structure_for_ever()
+
+    def pass_common_parameters(self):
         self.display_window.time = self.time
         self.display_window.nodes_amount = self.nodes_amount
         self.display_window.rolow = self.rolow
         self.display_window.roupp = self.roupp
         self.display_window.max_sub_nodes = self.max_sub_nodes
         self.display_window.max_tree_depth = self.max_tree_depth
+        self.display_window.smoothing_function = self.smoothing_function
         self.display_window.prob_depending = self.prob_depending
+
+    def build_structure(self):
+        self.display_window.clear_history()
+        self.display_window.show()
+        # Pass all params to display window
+        self.pass_common_parameters()
+        self.collect_matrices()
         self.display_window.node_coords = self.node_coords
         self.display_window.node_controls = self.node_controls
         self.display_window.A = self.A
         self.display_window.B = self.B
-        self.display_window.smoothing_function = self.smoothing_function
         # Building structures for every time
         self.display_window.build_structure_for_ever()
         # And syncing its widgets
@@ -537,43 +572,114 @@ class MainWin(QtWidgets.QMainWindow):
 
     def save_parameters(self):
         self.collect_matrices()
-        data_to_save = {
-            'time': self.time,
-            'nodes_amount': self.nodes_amount,
-            'rolow': self.rolow,
-            'roupp': self.roupp,
-            'max_sub_nodes': self.max_sub_nodes,
-            'max_tree_depth': self.max_tree_depth,
-            'prob_depending': self.prob_depending,
-            'node_coords': self.node_coords,
-            'node_controls': self.node_controls,
-            'A': self.A,
-            'B': self.B,
-            'smoothing_function': self.smoothing_function,
-        }
-        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Сохранить')
+        supported_ext_str = ';;'.join('{text} (*{ext})'.format(text=key, ext=val) for key, val in self.__supported_ext.items())
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Сохранить', '', supported_ext_str)
         if filename:
-            with open(filename, 'wb') as f:
-                pickle.dump(data_to_save, f)
+            ext = filename.split('.')[-1]
+            # Pickle save
+            if ext == 'pcl':
+                data_to_save = {
+                'time': self.time,
+                'nodes_amount': self.nodes_amount,
+                'rolow': self.rolow,
+                'roupp': self.roupp,
+                'max_sub_nodes': self.max_sub_nodes,
+                'max_tree_depth': self.max_tree_depth,
+                'prob_depending': self.prob_depending,
+                'node_coords': self.node_coords,
+                'node_controls': self.node_controls,
+                'A': self.A,
+                'B': self.B,
+                'smoothing_function': self.smoothing_function,
+                }
+                with open(filename, 'wb') as f:
+                    pickle.dump(data_to_save, f)
+            # Text save (saving coords and controls only!!)
+            elif ext == 'yaml':
+                with open(filename, 'w') as f:
+                    # First, we calculate x and u for each time
+                    self.build_structure_silent()
+                    # Then bypassing each time and write x and u
+                    to_yaml = dict()
+                    # rolow, roupp and smoothing func writing aswell
+                    to_yaml.update({
+                        'settings':{
+                            'smoothing_function': self.smoothing_function,
+                            'rolow': self.rolow,
+                            'roupp': self.roupp,
+                            'max_sub_nodes': self.max_sub_nodes,
+                            'max_tree_depth': self.max_tree_depth,
+                            'prob_depending': self.prob_depending,
+                        }
+                    })
+                    to_yaml.update({'structure': {
+                        t: {
+                            'coordinates': {
+                                i: coord for i, coord in enumerate(self.display_window.history_coords[t])
+                            },
+                            'controls': {
+                                i: control for i, control in enumerate(self.display_window.history_controls[t])
+                            },
+                        } for t in range(self.time)
+                    } })
+                    yaml.dump(to_yaml, f, default_flow_style=False, indent=4)
 
     def load_parameters(self):
-        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Загрузить')
+        supported_ext_str = ';;'.join('{text} (*{ext})'.format(text=key, ext=val) for key, val in self.__supported_ext.items())
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Загрузить', '', supported_ext_str)
         if filename:
-            with open(filename, 'rb') as f:
-                data = pickle.load(f)
-            self.time = data['time']
-            self.nodes_amount = data['nodes_amount']
-            self.rolow = data['rolow']
-            self.roupp = data['roupp']
-            self.max_sub_nodes = data['max_sub_nodes']
-            self.max_tree_depth = data['max_tree_depth']
-            self.prob_depending = data['prob_depending']
-            self.node_coords = data['node_coords']
-            self.node_controls = data['node_controls']
-            self.A = data['A']
-            self.B = data['B']
-            self.smoothing_function = data['smoothing_function']
-            self.syncWidgets()
+            ext = filename.split('.')[-1]
+            # Pickle load
+            if ext == 'pcl':
+                with open(filename, 'rb') as f:
+                    data = pickle.load(f)
+                self.time = data['time']
+                self.nodes_amount = data['nodes_amount']
+                self.rolow = data['rolow']
+                self.roupp = data['roupp']
+                self.max_sub_nodes = data['max_sub_nodes']
+                self.max_tree_depth = data['max_tree_depth']
+                self.prob_depending = data['prob_depending']
+                self.node_coords = data['node_coords']
+                self.node_controls = data['node_controls']
+                self.A = data['A']
+                self.B = data['B']
+                self.smoothing_function = data['smoothing_function']
+                self.syncWidgets()
+            # Text load (no opportunity to change system)
+            elif ext == 'yaml':
+                self.display_window.clear_history()
+                with open(filename, 'r') as f:
+                    loaded_yaml = yaml.safe_load(f)
+                    # Time
+                    self.time = len(loaded_yaml['structure'])
+                    # Nodes amount
+                    self.nodes_amount = len(loaded_yaml['structure'][0]['coordinates'])
+                    # Features
+                    self.smoothing_function = loaded_yaml['settings']['smoothing_function']
+                    self.rolow = loaded_yaml['settings']['rolow']
+                    self.roupp = loaded_yaml['settings']['roupp']
+                    self.max_sub_nodes = loaded_yaml['settings']['max_sub_nodes']
+                    self.max_tree_depth = loaded_yaml['settings']['max_tree_depth']
+                    self.prob_depending = loaded_yaml['settings']['prob_depending']
+                    for t, vect in loaded_yaml['structure'].items():
+                        curr_coords = []
+                        for node, coords in sorted(vect['coordinates'].items()):
+                            #print('\n{i}: {c}'.format(i=node, c=coords))
+                            curr_coords.append(coords)
+                        self.display_window.history_coords.append(curr_coords)
+                        #print('--------------')
+                        #print(tmp)
+                        curr_controls = []
+                        for node, controls in sorted(vect['controls'].items()):
+                            curr_controls.append(controls)
+                        self.display_window.history_controls.append(curr_controls)
+                print(*self.display_window.history_coords, sep='\n')
+                self.pass_common_parameters()
+                self.display_window.build_from_yaml()
+                self.display_window.prepareWidgets()
+                self.display_window.show()
+                self.display_window.syncWidgets()
 
 
 if __name__=='__main__':

@@ -1,0 +1,46 @@
+# Sample config (user made). Here is a structure of 4 agents. Overall time = 3 steps
+#   
+#   smoothing_function:
+#       - cos(ax+b)
+#       - exp(b-a)/((x-a)(x-b))
+settings:
+    max_sub_nodes: 2
+    max_tree_depth: 0
+    prob_depending: true
+    rolow: 5
+    roupp: 15
+    smoothing_function: cos(ax+b)
+structure:
+    0:
+        coordinates:
+            0: [0.0, 0.0]
+            1: [3.0, 5.5]
+            2: [6.0, 2.4]
+            3: [-3.0, -1.1]
+        controls:
+            0: [1, 1]
+            1: [1, 1]
+            2: [1, 1]
+            3: [1, 1]
+    1:
+        coordinates:
+            0: [3.0, -3.0]
+            1: [10.0, 21.0]
+            2: [-3.0, 4.8]
+            3: [-9.0, -3.3]
+        controls:
+            0: [2, 1]
+            1: [2, 1]
+            2: [1, 2]
+            3: [1, 2]   
+    2:
+        coordinates:
+            0: [0.0, -9.0]
+            1: [3.0, 5.5]
+            2: [-12.0, 2.4]
+            3: [-15.0, -6.0]
+        controls:
+            0: [5, 5]
+            1: [5, 5]
+            2: [5, 5]
+            3: [5, 5]

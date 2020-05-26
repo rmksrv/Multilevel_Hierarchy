@@ -11,6 +11,7 @@ import forms.display_structure as forms_display
 import resources_rc
 
 # DEFAULT PARAMETERS
+DIM = 2
 DEFAULT_TIME = 5
 DEFAULT_ROLOW = 5
 DEFAULT_ROUPP = 100
@@ -29,8 +30,8 @@ DEFAULT_NODE_COORDS = [
 ]
 DEFAULT_NODES_AMOUNT = len(DEFAULT_NODE_COORDS)
 DEFAULT_NODE_CONTROLS = [(0.0, 0.0) for i in DEFAULT_NODE_COORDS]
-DEFAULT_A = np.eye(DEFAULT_NODES_AMOUNT).tolist()
-DEFAULT_B = np.eye(DEFAULT_NODES_AMOUNT).tolist()
+DEFAULT_A = [np.eye(DIM).tolist() for i in DEFAULT_NODE_COORDS]
+DEFAULT_B = [np.eye(DIM).tolist() for i in DEFAULT_NODE_COORDS]
 DEFAULT_ROUND_DIGIT = 4
 DEFAULT_SMOOTHING_FUNC = 'exp(b-a)/((x-a)(x-b))'
 
@@ -189,6 +190,8 @@ class DisplayWin(QtWidgets.QMainWindow):
         curr_coords = self.node_coords
         curr_controls = self.node_controls
         for curr_time in range(self.time):
+            print('curr_coords: {}'.format(curr_coords))
+            print('curr_controls: {}'.format(curr_controls))
             # Building current struct
             curr_struct = self.build_structure(curr_coords)
             curr_graph = curr_struct['graph']
@@ -201,13 +204,22 @@ class DisplayWin(QtWidgets.QMainWindow):
             self.history_conn_probs.append(curr_cprob)
             self.history_conn_powers.append(curr_cpower)
             # Calculating next coords and controls
-            npA = np.array(self.A)
-            npX = np.array(curr_coords)
-            curr_coords = (npA.dot(npX) + np.array(curr_controls)).tolist()
+            # coords
+            next_coords = []
+            for inode, coords in enumerate(curr_coords):
+                npA = np.array(self.A[inode])
+                npX = np.array(coords)
+                tmp = (npA.dot(npX) + curr_controls[inode]).tolist()
+                next_coords.append(tmp)
+            curr_coords = next_coords
             # controls
-            npB = np.array(self.B)
-            npU = np.array(curr_controls)
-            curr_controls = (npB.dot(npU)).tolist()
+            next_controls = []
+            for inode, controls in enumerate(curr_controls):
+                npB = np.array(self.B[inode])
+                npU = np.array(controls)
+                tmp = (npB.dot(npU)).tolist()
+                next_controls.append(tmp)
+            curr_controls = next_controls
 
     def build_structure(self, coords):
         # Building connection probability matrix
@@ -277,6 +289,9 @@ class MainWin(QtWidgets.QMainWindow):
         self.smoothing_function = DEFAULT_SMOOTHING_FUNC
         self.A = DEFAULT_A
         self.B = DEFAULT_B
+        self.current_agent = 0
+        self.current_A = self.A[self.current_agent]
+        self.current_B = self.B[self.current_agent]
         self.prepareWidgets()
         # Syncing widgets with own values
         self.syncWidgets()
@@ -284,8 +299,14 @@ class MainWin(QtWidgets.QMainWindow):
         self.initConnects()
 
     def prepareWidgets(self):
+        # Picture on top
         pixmap = QtGui.QPixmap('resources/next_node.png').scaledToHeight(64)
         self.ui.label__nextNode.setPixmap(pixmap)
+        # Set min values for spinboxes in inputA/B
+        self.ui.spinBox__currA.setMinimum(0)
+        self.ui.spinBox__currB.setMinimum(0)
+        self.ui.spinBox__currA.setMaximum(self.nodes_amount - 1)
+        self.ui.spinBox__currB.setMaximum(self.nodes_amount - 1)
 
     def initConnects(self):
         self.ui.lineEdit__inputTime.editingFinished.connect(self.set_time)
@@ -300,6 +321,10 @@ class MainWin(QtWidgets.QMainWindow):
         self.ui.pushButton__saveParams.clicked.connect(self.save_parameters)
         self.ui.pushButton__loadParams.clicked.connect(self.load_parameters)
         self.ui.comboBox__smoothFunc.activated[str].connect(self.set_smoothing_function)
+        self.ui.spinBox__currA.valueChanged.connect(self.set_current_agent_for_A)
+        self.ui.spinBox__currB.valueChanged.connect(self.set_current_agent_for_B)
+        self.ui.tableWidget__inputA.cellChanged[int, int].connect(self.set_A_for_current_agent)
+        self.ui.tableWidget__inputB.cellChanged[int, int].connect(self.set_B_for_current_agent)
 
     def syncWidgets(self):
         self.ui.lineEdit__inputTime.setText(str(self.time))
@@ -337,24 +362,37 @@ class MainWin(QtWidgets.QMainWindow):
             self.ui.tableWidget__inputu.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
         self.ui.tableWidget__inputu.resizeColumnsToContents()
 
+    # тут где-то проблема
     def syncTableA(self):
-        self.ui.tableWidget__inputA.setRowCount(self.nodes_amount)
-        self.ui.tableWidget__inputA.setColumnCount(self.nodes_amount)
-        self.ui.tableWidget__inputA.setHorizontalHeaderLabels(str(i) for i in range(self.nodes_amount))
-        self.ui.tableWidget__inputA.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
-        for i, row in enumerate(self.A):
+        # clear items
+        self.ui.tableWidget__inputA.clearContents()
+        # and start to fill cells
+        self.ui.tableWidget__inputA.setRowCount(DIM)
+        self.ui.tableWidget__inputA.setColumnCount(DIM)
+        curr_A = self.A[self.current_agent]
+        # Need to lock signals, to correctly setting A
+        self.__lock_signal = True
+        for i, row in enumerate(curr_A):
             for j, node in enumerate(row):
                 self.ui.tableWidget__inputA.setItem(i, j, QtWidgets.QTableWidgetItem(str(node)))
+        self.__lock_signal = False
+        # Dont forget to unlock it
         self.ui.tableWidget__inputA.resizeColumnsToContents()
 
     def syncTableB(self):
-        self.ui.tableWidget__inputB.setRowCount(self.nodes_amount)
-        self.ui.tableWidget__inputB.setColumnCount(self.nodes_amount)
-        self.ui.tableWidget__inputB.setHorizontalHeaderLabels(str(i) for i in range(self.nodes_amount))
-        self.ui.tableWidget__inputB.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
-        for i, row in enumerate(self.B):
+        # clear items
+        self.ui.tableWidget__inputB.clearContents()
+        # and start to fill cells
+        self.ui.tableWidget__inputB.setRowCount(DIM)
+        self.ui.tableWidget__inputB.setColumnCount(DIM)
+        curr_B = self.B[self.current_agent]
+        # Need to lock signals, to correctly setting B
+        self.__lock_signal = True
+        for i, row in enumerate(curr_B):
             for j, node in enumerate(row):
                 self.ui.tableWidget__inputB.setItem(i, j, QtWidgets.QTableWidgetItem(str(node)))
+        self.__lock_signal = False
+        # Dont forget to unlock it
         self.ui.tableWidget__inputB.resizeColumnsToContents()
 
     def show_prob_func(self):
@@ -367,12 +405,26 @@ class MainWin(QtWidgets.QMainWindow):
         self.time = int(self.ui.lineEdit__inputTime.text())
 
     def set_nodes_amount(self):
+        # Getting number of added agents
+        delta = int(self.ui.lineEdit__inputNodeAmount.text()) - self.nodes_amount
+        # If we are increasing amount of agents then extend set of A and B by eye matrices
+        if delta > 0:
+            self.A.extend(np.eye(DIM).tolist() for i in range(delta))
+            self.B.extend(np.eye(DIM).tolist() for i in range(delta))
+        # Else if decreasing, then just shrink them
+        elif delta < 0:
+            for i in range(-delta):
+                self.A.pop()
+                self.B.pop()
         self.nodes_amount = int(self.ui.lineEdit__inputNodeAmount.text())
         # Add rows to tables
         self.ui.tableWidget__inputx.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputu.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputA.setRowCount(self.nodes_amount)
         self.ui.tableWidget__inputB.setRowCount(self.nodes_amount)
+        # Set max values for spinboxes in inputA/B
+        self.ui.spinBox__currA.setMaximum(self.nodes_amount - 1)
+        self.ui.spinBox__currB.setMaximum(self.nodes_amount - 1)
         self.syncWidgets()
 
     def set_distance_link_on(self):
@@ -392,6 +444,46 @@ class MainWin(QtWidgets.QMainWindow):
 
     def set_smoothing_function(self):
         self.smoothing_function = self.ui.comboBox__smoothFunc.currentText()
+
+    def set_current_agent_for_A(self):
+        self.current_agent = int(self.ui.spinBox__currA.value())
+        self.syncTableA()
+
+    def set_current_agent_for_B(self):
+        self.current_agent = int(self.ui.spinBox__currB.value())
+        self.syncTableB()
+
+    def set_A_for_current_agent(self):
+        if not self.__lock_signal:
+            self.A[self.current_agent].clear()
+            for i in range(DIM):
+                row = []
+                for j in range(DIM):
+                    try:
+                        row.append(float(self.ui.tableWidget__inputA.item(i, j).text()))
+                    except AttributeError:
+                        warning_msg = QtWidgets.QMessageBox()
+                        warning_msg.setWindowTitle('Ошибка')
+                        warning_msg.setText('Введите корректные значения А')
+                        warning_msg.exec_()
+                        return
+                self.A[self.current_agent].append(row)
+
+    def set_B_for_current_agent(self):
+        if not self.__lock_signal:
+            self.B[self.current_agent].clear()
+            for i in range(DIM):
+                row = []
+                for j in range(DIM):
+                    try:
+                        row.append(float(self.ui.tableWidget__inputB.item(i, j).text()))
+                    except AttributeError:
+                        warning_msg = QtWidgets.QMessageBox()
+                        warning_msg.setWindowTitle('Ошибка')
+                        warning_msg.setText('Введите корректные значения А')
+                        warning_msg.exec_()
+                        return
+                self.B[self.current_agent].append(row)
 
     def collect_matrices(self):
         # Collect all inputs from matrices
@@ -421,34 +513,6 @@ class MainWin(QtWidgets.QMainWindow):
                 warning_msg.exec_()
                 return
             self.node_controls.append((x, y))
-        # A
-        self.A.clear()
-        for i in range(self.nodes_amount):
-            row = []
-            for j in range(self.nodes_amount):
-                try:
-                    row.append(float(self.ui.tableWidget__inputA.item(i, j).text()))
-                except AttributeError:
-                    warning_msg = QtWidgets.QMessageBox()
-                    warning_msg.setWindowTitle('Ошибка')
-                    warning_msg.setText('Введите корректные значения А')
-                    warning_msg.exec_()
-                    return
-            self.A.append(row)
-        # B
-        self.B.clear()
-        for i in range(self.nodes_amount):
-            row = []
-            for j in range(self.nodes_amount):
-                try:
-                    row.append(float(self.ui.tableWidget__inputB.item(i, j).text()))
-                except AttributeError:
-                    warning_msg = QtWidgets.QMessageBox()
-                    warning_msg.setWindowTitle('Ошибка')
-                    warning_msg.setText('Введите корректные значения В')
-                    warning_msg.exec_()
-                    return
-            self.B.append(row)
 
     def build_structure(self):
         self.display_window.clear_history()

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>399</width>
-    <height>762</height>
+    <width>470</width>
+    <height>771</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,15 +45,39 @@
          </property>
         </widget>
        </item>
+       <item row="4" column="0">
+        <widget class="QComboBox" name="comboBox__smoothFunc">
+         <item>
+          <property name="text">
+           <string>exp(b-a)/((x-a)(x-b))</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>cos(ax+b)</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLineEdit" name="lineEdit__inputTime"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="lineEdit__inputDistanceLinkOff"/>
+       </item>
+       <item row="4" column="1">
+        <widget class="QPushButton" name="pushButton__showProbFunc">
+         <property name="text">
+          <string>Функция вероятности</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="1">
         <widget class="QLabel" name="label__inputNodeAmount">
          <property name="text">
           <string>Количество узлов</string>
          </property>
         </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLineEdit" name="lineEdit__inputTime"/>
        </item>
        <item row="1" column="1">
         <widget class="QLineEdit" name="lineEdit__inputNodeAmount"/>
@@ -76,30 +100,6 @@
        </item>
        <item row="3" column="0">
         <widget class="QLineEdit" name="lineEdit__inputDistanceLinkOn"/>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="lineEdit__inputDistanceLinkOff"/>
-       </item>
-       <item row="4" column="0">
-        <widget class="QComboBox" name="comboBox__smoothFunc">
-         <item>
-          <property name="text">
-           <string>exp(b-a)/((x-a)(x-b))</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>cos(ax+b)</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QPushButton" name="pushButton__showProbFunc">
-         <property name="text">
-          <string>Функция вероятности</string>
-         </property>
-        </widget>
        </item>
       </layout>
      </widget>
@@ -168,6 +168,29 @@
             <enum>QAbstractScrollArea::AdjustToContents</enum>
            </property>
           </widget>
+          <widget class="QLabel" name="label__currA">
+           <property name="geometry">
+            <rect>
+             <x>350</x>
+             <y>10</y>
+             <width>47</width>
+             <height>13</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Агент</string>
+           </property>
+          </widget>
+          <widget class="QSpinBox" name="spinBox__currA">
+           <property name="geometry">
+            <rect>
+             <x>350</x>
+             <y>30</y>
+             <width>51</width>
+             <height>22</height>
+            </rect>
+           </property>
+          </widget>
          </widget>
          <widget class="QWidget" name="tab__B">
           <attribute name="title">
@@ -190,6 +213,29 @@
            </property>
            <column/>
            <column/>
+          </widget>
+          <widget class="QLabel" name="label__currB">
+           <property name="geometry">
+            <rect>
+             <x>350</x>
+             <y>10</y>
+             <width>47</width>
+             <height>13</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Агент</string>
+           </property>
+          </widget>
+          <widget class="QSpinBox" name="spinBox__currB">
+           <property name="geometry">
+            <rect>
+             <x>350</x>
+             <y>30</y>
+             <width>51</width>
+             <height>22</height>
+            </rect>
+           </property>
           </widget>
          </widget>
         </widget>
@@ -266,7 +312,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>399</width>
+     <width>470</width>
      <height>21</height>
     </rect>
    </property>

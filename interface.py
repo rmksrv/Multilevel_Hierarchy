@@ -30,7 +30,7 @@ DEFAULT_NODE_COORDS = [
 DEFAULT_NODES_AMOUNT = len(DEFAULT_NODE_COORDS)
 DEFAULT_NODE_CONTROLS = [(0.0, 0.0) for i in DEFAULT_NODE_COORDS]
 DEFAULT_A = np.eye(DEFAULT_NODES_AMOUNT).tolist()
-DEFAULT_B = [(1.0, 1.0) for i in DEFAULT_NODE_COORDS]
+DEFAULT_B = np.eye(DEFAULT_NODES_AMOUNT).tolist()
 DEFAULT_ROUND_DIGIT = 4
 DEFAULT_SMOOTHING_FUNC = 'exp(b-a)/((x-a)(x-b))'
 
@@ -207,7 +207,7 @@ class DisplayWin(QtWidgets.QMainWindow):
             # controls
             npB = np.array(self.B)
             npU = np.array(curr_controls)
-            curr_controls = (npB*npU).tolist()
+            curr_controls = (npB.dot(npU)).tolist()
 
     def build_structure(self, coords):
         # Building connection probability matrix
@@ -349,12 +349,12 @@ class MainWin(QtWidgets.QMainWindow):
 
     def syncTableB(self):
         self.ui.tableWidget__inputB.setRowCount(self.nodes_amount)
-        self.ui.tableWidget__inputB.setColumnCount(2)
-        self.ui.tableWidget__inputB.setHorizontalHeaderLabels(['x', 'y'])
+        self.ui.tableWidget__inputB.setColumnCount(self.nodes_amount)
+        self.ui.tableWidget__inputB.setHorizontalHeaderLabels(str(i) for i in range(self.nodes_amount))
         self.ui.tableWidget__inputB.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
-        for i, node in enumerate(self.B):
-            self.ui.tableWidget__inputB.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
-            self.ui.tableWidget__inputB.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
+        for i, row in enumerate(self.B):
+            for j, node in enumerate(row):
+                self.ui.tableWidget__inputB.setItem(i, j, QtWidgets.QTableWidgetItem(str(node)))
         self.ui.tableWidget__inputB.resizeColumnsToContents()
 
     def show_prob_func(self):
@@ -438,16 +438,17 @@ class MainWin(QtWidgets.QMainWindow):
         # B
         self.B.clear()
         for i in range(self.nodes_amount):
-            try:
-                x = float(self.ui.tableWidget__inputB.item(i, 0).text())
-                y = float(self.ui.tableWidget__inputB.item(i, 1).text())
-            except AttributeError:
-                warning_msg = QtWidgets.QMessageBox()
-                warning_msg.setWindowTitle('Ошибка')
-                warning_msg.setText('Введите корректные значения В')
-                warning_msg.exec_()
-                return
-            self.B.append((x, y))
+            row = []
+            for j in range(self.nodes_amount):
+                try:
+                    row.append(float(self.ui.tableWidget__inputB.item(i, j).text()))
+                except AttributeError:
+                    warning_msg = QtWidgets.QMessageBox()
+                    warning_msg.setWindowTitle('Ошибка')
+                    warning_msg.setText('Введите корректные значения В')
+                    warning_msg.exec_()
+                    return
+            self.B.append(row)
 
     def build_structure(self):
         self.display_window.clear_history()

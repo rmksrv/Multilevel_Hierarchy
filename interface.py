@@ -187,10 +187,6 @@ class DisplayWin(QtWidgets.QMainWindow):
         self.ui.widget__displayGraph.canvas.draw()
 
     def build_from_yaml(self):
-        # Printdebug
-        #print('history_coords:')
-        #print(*self.history_coords)
-        ##
         self.history_graphs.clear()
         self.history_conn_probs.clear()
         self.history_conn_powers.clear()
@@ -645,6 +641,8 @@ class MainWin(QtWidgets.QMainWindow):
                 self.A = data['A']
                 self.B = data['B']
                 self.smoothing_function = data['smoothing_function']
+                self.ui.spinBox__currA.setMaximum(self.nodes_amount - 1)
+                self.ui.spinBox__currB.setMaximum(self.nodes_amount - 1)
                 self.syncWidgets()
             # Text load (no opportunity to change system)
             elif ext == 'yaml':
@@ -665,16 +663,12 @@ class MainWin(QtWidgets.QMainWindow):
                     for t, vect in loaded_yaml['structure'].items():
                         curr_coords = []
                         for node, coords in sorted(vect['coordinates'].items()):
-                            #print('\n{i}: {c}'.format(i=node, c=coords))
                             curr_coords.append(coords)
                         self.display_window.history_coords.append(curr_coords)
-                        #print('--------------')
-                        #print(tmp)
                         curr_controls = []
                         for node, controls in sorted(vect['controls'].items()):
                             curr_controls.append(controls)
                         self.display_window.history_controls.append(curr_controls)
-                print(*self.display_window.history_coords, sep='\n')
                 self.pass_common_parameters()
                 self.display_window.build_from_yaml()
                 self.display_window.prepareWidgets()

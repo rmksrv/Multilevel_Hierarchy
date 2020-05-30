@@ -34,7 +34,8 @@ DEFAULT_NODE_CONTROLS = [[0.0, 0.0] for i in DEFAULT_NODE_COORDS]
 DEFAULT_A = [np.eye(DIM).tolist() for i in DEFAULT_NODE_COORDS]
 DEFAULT_B = [np.eye(DIM).tolist() for i in DEFAULT_NODE_COORDS]
 DEFAULT_ROUND_DIGIT = 4
-DEFAULT_SMOOTHING_FUNC = 'exp(b-a)/((x-a)(x-b))'
+DEFAULT_SMOOTHING_FUNC = 'cos(ax+b)'
+#DEFAULT_SMOOTHING_FUNC = 'exp(b-a)/((x-a)(x-b))'
 
 # Displaying structure window
 class DisplayWin(QtWidgets.QMainWindow):
@@ -313,6 +314,8 @@ class MainWin(QtWidgets.QMainWindow):
         self.initConnects()
 
     def prepareWidgets(self):
+        # Title
+        self.setWindowTitle('Построение многоагентной среды')
         # Picture on top
         pixmap = QtGui.QPixmap('resources/next_node.png').scaledToHeight(64)
         self.ui.label__nextNode.setPixmap(pixmap)
@@ -476,10 +479,7 @@ class MainWin(QtWidgets.QMainWindow):
                     try:
                         row.append(float(self.ui.tableWidget__inputA.item(i, j).text()))
                     except AttributeError:
-                        warning_msg = QtWidgets.QMessageBox()
-                        warning_msg.setWindowTitle('Ошибка')
-                        warning_msg.setText('Введите корректные значения А')
-                        warning_msg.exec_()
+                        self.error_message('Введите корректные значения А')
                         return
                 self.A[self.current_agent].append(row)
 
@@ -492,12 +492,15 @@ class MainWin(QtWidgets.QMainWindow):
                     try:
                         row.append(float(self.ui.tableWidget__inputB.item(i, j).text()))
                     except AttributeError:
-                        warning_msg = QtWidgets.QMessageBox()
-                        warning_msg.setWindowTitle('Ошибка')
-                        warning_msg.setText('Введите корректные значения А')
-                        warning_msg.exec_()
+                        self.error_message('Введите корректные значения А')
                         return
                 self.B[self.current_agent].append(row)
+
+    def error_message(self, text):
+        warning_msg = QtWidgets.QMessageBox()
+        warning_msg.setWindowTitle('Ошибка')
+        warning_msg.setText(text)
+        warning_msg.exec_()
 
     def collect_matrices(self):
         # Collect all inputs from matrices
@@ -508,10 +511,7 @@ class MainWin(QtWidgets.QMainWindow):
                 x = float(self.ui.tableWidget__inputx.item(i, 0).text())
                 y = float(self.ui.tableWidget__inputx.item(i, 1).text())
             except AttributeError:
-                warning_msg = QtWidgets.QMessageBox()
-                warning_msg.setWindowTitle('Ошибка')
-                warning_msg.setText('Введите корректные координаты')
-                warning_msg.exec_()
+                self.error_message('Введите корректные значения А')
                 return
             self.node_coords.append([x, y])
         # u
@@ -521,10 +521,7 @@ class MainWin(QtWidgets.QMainWindow):
                 x = float(self.ui.tableWidget__inputu.item(i, 0).text())
                 y = float(self.ui.tableWidget__inputu.item(i, 1).text())
             except AttributeError:
-                warning_msg = QtWidgets.QMessageBox()
-                warning_msg.setWindowTitle('Ошибка')
-                warning_msg.setText('Введите корректное управление')
-                warning_msg.exec_()
+                self.error_message('Введите корректные значения А')
                 return
             self.node_controls.append([x, y])
 
@@ -627,53 +624,86 @@ class MainWin(QtWidgets.QMainWindow):
             ext = filename.split('.')[-1]
             # Pickle load
             if ext == 'pcl':
-                with open(filename, 'rb') as f:
-                    data = pickle.load(f)
-                self.time = data['time']
-                self.nodes_amount = data['nodes_amount']
-                self.rolow = data['rolow']
-                self.roupp = data['roupp']
-                self.max_sub_nodes = data['max_sub_nodes']
-                self.max_tree_depth = data['max_tree_depth']
-                self.prob_depending = data['prob_depending']
-                self.node_coords = data['node_coords']
-                self.node_controls = data['node_controls']
-                self.A = data['A']
-                self.B = data['B']
-                self.smoothing_function = data['smoothing_function']
+                self.load_from_pickle(filename)
                 self.ui.spinBox__currA.setMaximum(self.nodes_amount - 1)
                 self.ui.spinBox__currB.setMaximum(self.nodes_amount - 1)
                 self.syncWidgets()
             # Text load (no opportunity to change system)
             elif ext == 'yaml':
                 self.display_window.clear_history()
-                with open(filename, 'r') as f:
-                    loaded_yaml = yaml.safe_load(f)
-                    # Time
-                    self.time = len(loaded_yaml['structure'])
-                    # Nodes amount
-                    self.nodes_amount = len(loaded_yaml['structure'][0]['coordinates'])
-                    # Features
-                    self.smoothing_function = loaded_yaml['settings']['smoothing_function']
-                    self.rolow = loaded_yaml['settings']['rolow']
-                    self.roupp = loaded_yaml['settings']['roupp']
-                    self.max_sub_nodes = loaded_yaml['settings']['max_sub_nodes']
-                    self.max_tree_depth = loaded_yaml['settings']['max_tree_depth']
-                    self.prob_depending = loaded_yaml['settings']['prob_depending']
-                    for t, vect in loaded_yaml['structure'].items():
-                        curr_coords = []
-                        for node, coords in sorted(vect['coordinates'].items()):
-                            curr_coords.append(coords)
-                        self.display_window.history_coords.append(curr_coords)
-                        curr_controls = []
-                        for node, controls in sorted(vect['controls'].items()):
-                            curr_controls.append(controls)
-                        self.display_window.history_controls.append(curr_controls)
+                self.load_from_yaml(filename)
                 self.pass_common_parameters()
                 self.display_window.build_from_yaml()
                 self.display_window.prepareWidgets()
                 self.display_window.show()
                 self.display_window.syncWidgets()
+
+    def load_from_pickle(self, filename):
+        with open(filename, 'rb') as f:
+            data = pickle.load(f)
+        self.time = data['time']
+        self.nodes_amount = data['nodes_amount']
+        self.rolow = data['rolow']
+        self.roupp = data['roupp']
+        self.max_sub_nodes = data['max_sub_nodes']
+        self.max_tree_depth = data['max_tree_depth']
+        self.prob_depending = data['prob_depending']
+        self.node_coords = data['node_coords']
+        self.node_controls = data['node_controls']
+        self.A = data['A']
+        self.B = data['B']
+        self.smoothing_function = data['smoothing_function']
+
+    def load_from_yaml(self, filename):
+        with open(filename, 'r') as f:
+            loaded_yaml = yaml.safe_load(f)
+            ## MAIN THINGS
+            # Time
+            try:
+                self.time = len(loaded_yaml['structure'])
+            except KeyError:
+                self.time = DEFAULT_TIME
+            # Nodes amount
+            # TODO: add prtection if not exist key
+            self.nodes_amount = len(loaded_yaml['structure'][0]['coordinates'])
+            # Features
+            try:
+                self.smoothing_function = loaded_yaml['settings']['smoothing_function']
+            except KeyError:
+                self.smoothing_function = DEFAULT_SMOOTHING_FUNC
+            try:
+                self.rolow = loaded_yaml['settings']['rolow']
+            except KeyError:
+                self.rolow = DEFAULT_ROLOW
+            try:
+                self.roupp = loaded_yaml['settings']['roupp']
+            except KeyError:
+                self.roupp = DEFAULT_ROUPP
+            try:
+                self.max_sub_nodes = loaded_yaml['settings']['max_sub_nodes']
+            except KeyError:
+                self.max_sub_nodes = DEFAULT_MAX_SUB_NODES
+            try:
+                self.max_tree_depth = loaded_yaml['settings']['max_tree_depth']
+            except KeyError:
+                self.max_tree_depth = DEFAULT_MAX_TREE_DEPTH
+            try:
+                self.prob_depending = loaded_yaml['settings']['prob_depending']
+            except KeyError:
+                self.prob_depending = DEFAULT_PROB_DEPENDING
+            #
+            ## STRUCTURE
+            for t, vect in loaded_yaml['structure'].items():
+                # Neccesary to get first set of coords (t = 0)
+                # On other times we can seet current coords == prev coords
+                curr_coords = []
+                for node, coords in sorted(vect['coordinates'].items()):
+                    curr_coords.append(coords)
+                self.display_window.history_coords.append(curr_coords)
+                curr_controls = []
+                for node, controls in sorted(vect['controls'].items()):
+                    curr_controls.append(controls)
+                self.display_window.history_controls.append(curr_controls)
 
 
 if __name__=='__main__':

@@ -679,9 +679,10 @@ class MainWin(QtWidgets.QMainWindow):
             ## MAIN THINGS
             # Time
             try:
-                self.time = len(loaded_yaml['structure'])
+                self.time = loaded_yaml['settings']['time']
             except KeyError:
-                self.time = DEFAULT_TIME
+                self.time = len(loaded_yaml['structure'])
+                #self.time = DEFAULT_TIME
             # Nodes amount
             # TODO: add prtection if not exist key
             self.nodes_amount = len(loaded_yaml['structure'][0]['coordinates'])
@@ -713,9 +714,8 @@ class MainWin(QtWidgets.QMainWindow):
             #
             ## STRUCTURE
             for t, vect in loaded_yaml['structure'].items():
-                print('t = ', t)
+                #print('t = ', t)
                 # A
-                # TODO placeholder
                 curr_A = []
                 try:
                     for node, A in sorted(vect['A'].items()):
@@ -729,9 +729,8 @@ class MainWin(QtWidgets.QMainWindow):
                         curr_A = self.display_window.history_A[t-1]
                 finally:
                     self.display_window.history_A.append(curr_A)
-                    print('curr_A =\n', curr_A)
+                    #print('curr_A =\n', curr_A)
                 # B
-                # TODO placeholder
                 curr_B = []
                 try:
                     for node, B in sorted(vect['B'].items()):
@@ -745,7 +744,7 @@ class MainWin(QtWidgets.QMainWindow):
                         curr_B = self.display_window.history_B[t-1]
                 finally:
                     self.display_window.history_B.append(curr_B)
-                    print('curr_B =\n', curr_B)
+                    #print('curr_B =\n', curr_B)
                 # Controls
                 curr_controls = []
                 try:
@@ -758,7 +757,7 @@ class MainWin(QtWidgets.QMainWindow):
                         curr_controls = self.display_window.history_controls[t-1]
                 finally:
                     self.display_window.history_controls.append(curr_controls)
-                    print('curr_controls =\n', curr_controls)
+                    #print('curr_controls =\n', curr_controls)
                 # Coords
                 curr_coords = []
                 try:
@@ -783,11 +782,7 @@ class MainWin(QtWidgets.QMainWindow):
                             curr_coords.append(tmp)
                 finally:
                     self.display_window.history_coords.append(curr_coords)
-                    print('curr_coords =\n', curr_coords)
-                #curr_controls = []
-                #for node, controls in sorted(vect['controls'].items()):
-                #    curr_controls.append(controls)
-                #self.display_window.history_controls.append(curr_controls)
+                    #print('curr_coords =\n', curr_coords)
 
 
 if __name__=='__main__':

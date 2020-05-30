@@ -30,9 +30,12 @@ DEFAULT_NODE_COORDS = [
     [-5.0, 0.0],
 ]
 DEFAULT_NODES_AMOUNT = len(DEFAULT_NODE_COORDS)
-DEFAULT_NODE_CONTROLS = [[0.0, 0.0] for i in DEFAULT_NODE_COORDS]
-DEFAULT_A = [np.eye(DIM).tolist() for i in DEFAULT_NODE_COORDS]
-DEFAULT_B = [np.eye(DIM).tolist() for i in DEFAULT_NODE_COORDS]
+DEFAULT_CONTROL = [0.0, 0.0]
+DEFAULT_NODE_CONTROLS = [DEFAULT_CONTROL for i in DEFAULT_NODE_COORDS]
+DEFAULT_SINGLE_A = np.eye(DIM).tolist()
+DEFAULT_A = [DEFAULT_SINGLE_A  for i in DEFAULT_NODE_COORDS]
+DEFAULT_SINGLE_B = np.eye(DIM).tolist()
+DEFAULT_B = [DEFAULT_SINGLE_B  for i in DEFAULT_NODE_COORDS]
 DEFAULT_ROUND_DIGIT = 4
 DEFAULT_SMOOTHING_FUNC = 'cos(ax+b)'
 #DEFAULT_SMOOTHING_FUNC = 'exp(b-a)/((x-a)(x-b))'
@@ -49,6 +52,8 @@ class DisplayWin(QtWidgets.QMainWindow):
         # Vars
         self.builder = StructureBuilder()
         self.current_time = 0
+        self.history_A =[]
+        self.history_B =[]
         self.history_coords = []
         self.history_controls = []
         self.history_graphs = []
@@ -201,6 +206,8 @@ class DisplayWin(QtWidgets.QMainWindow):
         self.clear_history()
         curr_coords = self.node_coords
         curr_controls = self.node_controls
+        curr_A = self.A
+        curr_B = self.B
         for curr_time in range(self.time):
             # Building current struct
             curr_struct = self.build_structure(curr_coords)
@@ -208,16 +215,21 @@ class DisplayWin(QtWidgets.QMainWindow):
             curr_cprob = curr_struct['connection_prob']
             curr_cpower = curr_struct['connection_power']
             # Adding it to history
+            self.history_A.append(curr_A)
+            self.history_B.append(curr_B)
             self.history_coords.append(curr_coords)
             self.history_controls.append(curr_controls)
             self.history_graphs.append(curr_graph)
             self.history_conn_probs.append(curr_cprob)
             self.history_conn_powers.append(curr_cpower)
             # Calculating next coords and controls
+            # A, B
+            # NOTE: placeholder, cause A, B does not change now
             # coords
             next_coords = []
             for inode, coords in enumerate(curr_coords):
-                npA = np.array(self.A[inode])
+                #npA = np.array(self.A[inode])
+                npA = np.array(curr_A[inode])
                 npX = np.array(coords)
                 tmp = (npA.dot(npX) + curr_controls[inode]).tolist()
                 next_coords.append(tmp)
@@ -225,9 +237,11 @@ class DisplayWin(QtWidgets.QMainWindow):
             # controls
             next_controls = []
             for inode, controls in enumerate(curr_controls):
-                npB = np.array(self.B[inode])
+                #npB = np.array(self.B[inode])
+                npB = np.array(curr_B[inode])
                 npU = np.array(controls)
-                tmp = (npB.dot(npU)).tolist()
+                #tmp = (npB.dot(npU)).tolist()
+                tmp = npU.tolist()
                 next_controls.append(tmp)
             curr_controls = next_controls
 
@@ -631,7 +645,12 @@ class MainWin(QtWidgets.QMainWindow):
             # Text load (no opportunity to change system)
             elif ext == 'yaml':
                 self.display_window.clear_history()
-                self.load_from_yaml(filename)
+                try:
+                    self.load_from_yaml(filename)
+                except Exception as e:
+                    #self.error_message(str(e))
+                    #return
+                    raise
                 self.pass_common_parameters()
                 self.display_window.build_from_yaml()
                 self.display_window.prepareWidgets()
@@ -694,16 +713,81 @@ class MainWin(QtWidgets.QMainWindow):
             #
             ## STRUCTURE
             for t, vect in loaded_yaml['structure'].items():
-                # Neccesary to get first set of coords (t = 0)
-                # On other times we can seet current coords == prev coords
-                curr_coords = []
-                for node, coords in sorted(vect['coordinates'].items()):
-                    curr_coords.append(coords)
-                self.display_window.history_coords.append(curr_coords)
+                print('t = ', t)
+                # A
+                # TODO placeholder
+                curr_A = []
+                try:
+                    for node, A in sorted(vect['A'].items()):
+                        curr_A.append(A)
+                except KeyError:
+                    if t == 0:
+                        # If t == 0 then set it default for each node (diagonal one)
+                        curr_A = [DEFAULT_SINGLE_A for i in range(self.nodes_amount)]
+                    else:
+                        # else current A's == previous A's
+                        curr_A = self.display_window.history_A[t-1]
+                finally:
+                    self.display_window.history_A.append(curr_A)
+                    print('curr_A =\n', curr_A)
+                # B
+                # TODO placeholder
+                curr_B = []
+                try:
+                    for node, B in sorted(vect['B'].items()):
+                        curr_B.append(B)
+                except KeyError:
+                    if t == 0:
+                        # If t == 0 then set it default for each node (diagonal one)
+                        curr_B = [DEFAULT_SINGLE_B for i in range(self.nodes_amount)]
+                    else:
+                        # else current B's == previous B's
+                        curr_B = self.display_window.history_B[t-1]
+                finally:
+                    self.display_window.history_B.append(curr_B)
+                    print('curr_B =\n', curr_B)
+                # Controls
                 curr_controls = []
-                for node, controls in sorted(vect['controls'].items()):
-                    curr_controls.append(controls)
-                self.display_window.history_controls.append(curr_controls)
+                try:
+                    for node, controls in sorted(vect['controls'].items()):
+                        curr_controls.append(controls)
+                except KeyError:
+                    if t == 0:
+                        curr_controls = [DEFAULT_CONTROL for i in range(self.nodes_amount)]
+                    else:
+                        curr_controls = self.display_window.history_controls[t-1]
+                finally:
+                    self.display_window.history_controls.append(curr_controls)
+                    print('curr_controls =\n', curr_controls)
+                # Coords
+                curr_coords = []
+                try:
+                    for node, coords in sorted(vect['coordinates'].items()):
+                        curr_coords.append(coords)
+                except KeyError:
+                    if t == 0:
+                        # if we don't found it for 1st t, raise exception
+                        self.error_message('YAML файл не содержит стартовых координат')
+                        raise
+                        # NOTE: actually we can set it by zeroes, but we have to get nodes_amount
+                    else:
+                        # 1. get previous coords
+                        prev_coords = self.display_window.history_coords[t-1]
+                        # 2. calculate new coords basing on prev coords
+                        curr_coords = []
+                        for inode, coords in enumerate(prev_coords):
+                            #npA = np.array(self.display_window.history_A[t][inode])
+                            npA = np.array(self.display_window.history_A[t][inode])
+                            npX = np.array(coords)
+                            tmp = (npA.dot(npX) + self.display_window.history_controls[t][inode]).tolist()
+                            curr_coords.append(tmp)
+                finally:
+                    self.display_window.history_coords.append(curr_coords)
+                    print('curr_coords =\n', curr_coords)
+                #curr_controls = []
+                #for node, controls in sorted(vect['controls'].items()):
+                #    curr_controls.append(controls)
+                #self.display_window.history_controls.append(curr_controls)
 
 
 if __name__=='__main__':

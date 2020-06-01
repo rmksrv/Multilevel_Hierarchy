@@ -87,8 +87,8 @@ class DisplayWin(QtWidgets.QMainWindow):
         self.ui.tableWidget__displayx.setHorizontalHeaderLabels(['x', 'y'])
         self.ui.tableWidget__displayx.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i, node in enumerate(self.history_coords[self.current_time]):
-            self.ui.tableWidget__displayx.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
-            self.ui.tableWidget__displayx.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
+            self.ui.tableWidget__displayx.setItem(i, 0, QtWidgets.QTableWidgetItem(str(round(node[0], DEFAULT_ROUND_DIGIT))))
+            self.ui.tableWidget__displayx.setItem(i, 1, QtWidgets.QTableWidgetItem(str(round(node[1], DEFAULT_ROUND_DIGIT))))
         self.ui.tableWidget__displayx.resizeColumnsToContents()
 
     def syncNodeControlsTable(self):
@@ -97,8 +97,8 @@ class DisplayWin(QtWidgets.QMainWindow):
         self.ui.tableWidget__displayu.setHorizontalHeaderLabels(['x', 'y'])
         self.ui.tableWidget__displayu.setVerticalHeaderLabels(str(i) for i in range(self.nodes_amount))
         for i, node in enumerate(self.history_controls[self.current_time]):
-            self.ui.tableWidget__displayu.setItem(i, 0, QtWidgets.QTableWidgetItem(str(node[0])))
-            self.ui.tableWidget__displayu.setItem(i, 1, QtWidgets.QTableWidgetItem(str(node[1])))
+            self.ui.tableWidget__displayu.setItem(i, 0, QtWidgets.QTableWidgetItem(str(round(node[0], DEFAULT_ROUND_DIGIT))))
+            self.ui.tableWidget__displayu.setItem(i, 1, QtWidgets.QTableWidgetItem(str(round(node[1], DEFAULT_ROUND_DIGIT))))
         self.ui.tableWidget__displayu.resizeColumnsToContents()
 
     def syncConnectionProbsTable(self):
